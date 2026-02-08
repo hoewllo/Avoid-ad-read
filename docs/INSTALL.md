@@ -1,189 +1,189 @@
-files# EPUB广告清理工具 - 安装指南
+# EPUB Ad Cleaner - Installation Guide
 
-## 快速安装
+## Quick Installation
 
-### Windows用户
+### Windows Users
 
-1. **下载预编译版本**（如果可用）：
-   - 从发布页面下载 `epub_cleaner.exe`
-   - 将文件放在任意目录
-   - 将该目录添加到PATH环境变量（可选）
+1. **Download Precompiled Version** (if available):
+   - Download `epub_cleaner.exe` from the release page
+   - Place the file in any directory
+   - Add the directory to PATH environment variable (optional)
 
-2. **从源代码编译**：
+2. **Compile from Source**:
    ```bash
-   # 方法1: 使用编译脚本
-   compile_simple.bat
+   # Method 1: Use compilation script
+   tools/build-tool/compile_simple.bat
    
-   # 方法2: 手动编译
+   # Method 2: Manual compilation
    mkdir bin
    g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner.exe -D_WIN32
    ```
 
-### Linux/macOS用户
+### Linux/macOS Users
 
 ```bash
-# 安装编译依赖
+# Install compilation dependencies
 sudo apt-get install g++  # Ubuntu/Debian
-# 或
+# or
 brew install gcc          # macOS
 
-# 编译
+# Compile
 mkdir -p bin
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner
 
-# 添加到PATH（可选）
+# Add to PATH (optional)
 sudo cp bin/epub_cleaner /usr/local/bin/
 ```
 
-## 依赖项
+## Dependencies
 
-### 必需依赖
+### Required Dependencies
 
-1. **C++编译器**：
-   - GCC/G++ 7.0+ 或 Clang 5.0+ 或 MSVC 2017+
-   - 支持C++17标准
+1. **C++ Compiler**:
+   - GCC/G++ 7.0+ or Clang 5.0+ or MSVC 2017+
+   - Support for C++17 standard
 
-2. **标准库**：
-   - C++17标准库（filesystem, regex等）
+2. **Standard Library**:
+   - C++17 standard library (filesystem, regex, etc.)
 
-### 可选依赖
+### Optional Dependencies
 
-1. **ZIP处理**：
-   - Windows: PowerShell 5.0+（已内置）
-   - Linux: unzip和zip命令
-   - macOS: 同Linux
+1. **ZIP Processing**:
+   - Windows: PowerShell 5.0+ (built-in)
+   - Linux: unzip and zip commands
+   - macOS: Same as Linux
 
-## 验证安装
+## Verify Installation
 
 ```bash
-# 检查版本
+# Check version
 epub_cleaner --version
 
-# 显示帮助
+# Show help
 epub_cleaner --help
 
-# 测试简单命令
+# Test simple command
 epub_cleaner -h
 ```
 
-预期输出应显示版本信息和帮助文档。
+Expected output should show version information and help documentation.
 
-## 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-#### 1. "命令未找到"或"不是内部或外部命令"
+#### 1. "Command not found" or "Not an internal or external command"
 
-**解决方案**：
-- 确保可执行文件在PATH中
-- 或使用完整路径：`./bin/epub_cleaner`
-- 或添加当前目录到PATH
+**Solution**:
+- Ensure the executable is in PATH
+- Or use full path: `./bin/epub_cleaner`
+- Or add current directory to PATH
 
-#### 2. "缺少DLL"（Windows）
+#### 2. "Missing DLL" (Windows)
 
-**解决方案**：
-- 安装Visual C++ Redistributable
-- 或静态链接：添加`-static`编译选项
+**Solution**:
+- Install Visual C++ Redistributable
+- Or static linking: Add `-static` compilation option
 
-#### 3. "无法打开文件"
+#### 3. "Cannot open file"
 
-**解决方案**：
-- 检查文件路径是否正确
-- 确保有读取权限
-- 使用绝对路径
+**Solution**:
+- Check if file path is correct
+- Ensure read permissions
+- Use absolute path
 
-#### 4. 编译错误
+#### 4. Compilation Errors
 
-**解决方案**：
-- 确保使用C++17编译器
-- 检查头文件路径
-- 查看具体错误信息
+**Solution**:
+- Ensure using C++17 compiler
+- Check header file paths
+- View specific error messages
 
-### 编译选项
+### Compilation Options
 
 ```bash
-# 调试版本（带调试信息）
+# Debug version (with debug information)
 g++ -std=c++17 -g -Iinclude -I. src/*.cpp -o epub_cleaner_debug
 
-# 发布版本（优化）
+# Release version (optimized)
 g++ -std=c++17 -O2 -Iinclude -I. src/*.cpp -o epub_cleaner_release
 
-# 静态链接（Windows，避免DLL依赖）
+# Static linking (Windows, avoid DLL dependencies)
 g++ -std=c++17 -static -Iinclude -I. src/*.cpp -o epub_cleaner_static.exe
 ```
 
-## 环境配置
+## Environment Configuration
 
-### Windows PATH配置
+### Windows PATH Configuration
 
-1. 右键点击"此电脑" → "属性"
-2. "高级系统设置" → "环境变量"
-3. 在"系统变量"中找到"Path"
-4. 点击"编辑" → "新建"
-5. 添加epub_cleaner.exe所在目录
-6. 点击"确定"保存
+1. Right-click "This PC" → "Properties"
+2. "Advanced system settings" → "Environment Variables"
+3. Find "Path" in "System variables"
+4. Click "Edit" → "New"
+5. Add directory containing epub_cleaner.exe
+6. Click "OK" to save
 
-### Linux/macOS PATH配置
+### Linux/macOS PATH Configuration
 
 ```bash
-# 添加到~/.bashrc或~/.zshrc
+# Add to ~/.bashrc or ~/.zshrc
 export PATH="$PATH:/path/to/epub_cleaner"
 
-# 重新加载配置
+# Reload configuration
 source ~/.bashrc
 ```
 
-## 升级
+## Upgrading
 
-### 从源代码升级
+### Upgrade from Source
 
 ```bash
-# 拉取最新代码
+# Pull latest code
 git pull origin main
 
-# 重新编译
+# Recompile
 rm -rf bin
 mkdir bin
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner
 ```
 
-### 预编译版本升级
+### Precompiled Version Upgrade
 
-直接下载新版本的可执行文件替换旧版本。
+Directly download new version executable to replace old version.
 
-## 卸载
+## Uninstallation
 
 ### Windows
 
-1. 删除可执行文件
-2. 从PATH中移除相关目录
-3. 删除配置文件（如果有）
+1. Delete executable file
+2. Remove related directory from PATH
+3. Delete configuration files (if any)
 
 ### Linux/macOS
 
 ```bash
-# 删除可执行文件
+# Delete executable file
 sudo rm /usr/local/bin/epub_cleaner
 
-# 或删除整个目录
+# Or delete entire directory
 rm -rf /path/to/epub_cleaner
 ```
 
-## 支持的操作系统
+## Supported Operating Systems
 
 - **Windows** 7/8/10/11 (x64)
-- **Linux** Ubuntu 18.04+, CentOS 7+, 其他主流发行版
+- **Linux** Ubuntu 18.04+, CentOS 7+, other mainstream distributions
 - **macOS** 10.15+
 
-## 获取帮助
+## Getting Help
 
-如果安装遇到问题：
+If installation encounters problems:
 
-1. 查看README.md中的详细说明
-2. 检查错误信息
-3. 确保满足所有依赖项
-4. 在GitHub Issues中报告问题
+1. Check detailed instructions in README.md
+2. Check error messages
+3. Ensure all dependencies are met
+4. Report issues in GitHub Issues
 
-## 许可证
+## License
 
-本项目使用MIT许可证。安装和使用本软件即表示您同意许可证条款。
+This project uses the MIT License. Installing and using this software indicates your agreement to the license terms.

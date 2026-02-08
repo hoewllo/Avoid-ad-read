@@ -1,99 +1,148 @@
-# EPUB广告清理工具 - 项目文件索引
+# EPUB Ad Cleaner - Project File Index (v1.1.0)
 
-## 项目结构
+## Project Structure
 
 ```
 epub_cleaner_project/
-├── bin/                    # 编译输出目录
-│   └── epub_cleaner.exe   # 可执行文件（编译后生成）
-├── src/                    # C++源代码
-│   ├── main.cpp           # 主程序入口
-│   ├── epub_processor.cpp # EPUB处理核心
-│   ├── ad_patterns.cpp    # 广告模式管理
-│   └── file_utils.cpp     # 文件操作工具
-├── include/               # C++头文件
+├── docs/                    # All documentation (English/Chinese)
+│   ├── README.md           # Complete English documentation
+│   ├── README_ZH.md        # Complete Chinese documentation
+│   ├── USAGE.md            # Usage guide (English)
+│   ├── USAGE_ZH.md         # Usage guide (Chinese)
+│   ├── INSTALL.md          # Installation guide (English)
+│   ├── INSTALL_ZH.md       # Installation guide (Chinese)
+│   ├── PROJECT_SUMMARY.md  # Technical project summary (English)
+│   ├── PROJECT_SUMMARY_ZH.md # Technical project summary (Chinese)
+│   ├── FINAL_PROJECT_STATUS.md # Project completion status (English)
+│   ├── FINAL_PROJECT_STATUS_ZH.md # Project completion status (Chinese)
+│   ├── INDEX.md            # This file
+│   └── TEST_EPUB_STRUCTURE.md # Test documentation (English)
+├── src/                    # C++ source code
+│   ├── main.cpp           # Main program entry
+│   ├── epub_processor.cpp # EPUB processing core
+│   ├── ad_patterns.cpp    # Ad pattern management
+│   ├── file_utils.cpp     # File operation utilities
+│   ├── zip_utils_impl.cpp # ZIP file processing implementation
+│   ├── zlib_utils.cpp     # zlib compression utilities
+│   └── logger.cpp         # Logging system
+├── include/               # C++ header files
 │   ├── epub_processor.h
 │   ├── ad_patterns.h
-│   └── file_utils.h
-├── build/                 # 构建目录（CMake生成）
-├── trash/                 # 已移动的旧文件
-└── 根目录文件
+│   ├── file_utils.h
+│   ├── zip_utils.h
+│   └── logger.h
+├── tools/                 # Tool scripts
+│   ├── build-tool/       # Build tools
+│   │   ├── build.bat     # Full build script
+│   │   └── compile_simple.bat # Simple compilation script
+│   └── test/             # Testing tools
+│       ├── test_main.cpp # Unit tests
+│       └── test_refactored.bat # Refactored version tests
+├── bin/                   # Compiled output directory
+├── build/                 # CMake build directory
+├── .gitignore            # Git ignore file
+├── CMakeLists.txt        # CMake build configuration
+├── example_patterns.txt  # Ad pattern examples
+└── LICENSE               # MIT License
 ```
 
-## 核心文件说明
+## Core File Descriptions
 
-### 1. 源代码文件
+### 1. Source Code Files
 
-| 文件 | 描述 | 重要性 |
-|------|------|--------|
-| `src/main.cpp` | 主程序入口，命令行参数处理 | ★★★★★ |
-| `src/epub_processor.cpp` | EPUB处理核心逻辑 | ★★★★★ |
-| `src/ad_patterns.cpp` | 广告模式定义和管理 | ★★★★☆ |
-| `src/file_utils.cpp` | 文件操作工具函数 | ★★★★☆ |
-| `include/epub_processor.h` | EPUB处理器头文件 | ★★★★★ |
-| `include/ad_patterns.h` | 广告模式头文件 | ★★★★☆ |
-| `include/file_utils.h` | 文件工具头文件 | ★★★★☆ |
+| File | Description | Importance |
+|------|-------------|------------|
+| `src/main.cpp` | Main program entry, command line argument processing | ★★★★★ |
+| `src/epub_processor.cpp` | EPUB processing core logic | ★★★★★ |
+| `src/ad_patterns.cpp` | Ad pattern definition and management | ★★★★☆ |
+| `src/file_utils.cpp` | File operation utility functions | ★★★★☆ |
+| `src/zip_utils_impl.cpp` | ZIP file processing implementation (new in v1.1.0) | ★★★★☆ |
+| `src/logger.cpp` | Logging system (new in v1.1.0) | ★★★☆☆ |
+| `src/zlib_utils.cpp` | zlib compression utilities (new in v1.1.0) | ★★★☆☆ |
 
-### 2. 构建和编译文件
+### 2. Header Files
 
-| 文件 | 描述 | 用途 |
-|------|------|------|
-| `CMakeLists.txt` | CMake构建配置文件 | 高级构建 |
-| `compile_simple.bat` | 简单编译脚本 | 快速编译 |
-| `build.bat` | 完整构建脚本 | Windows构建 |
+| File | Description | Importance |
+|------|-------------|------------|
+| `include/epub_processor.h` | EPUB processor header | ★★★★★ |
+| `include/ad_patterns.h` | Ad pattern header | ★★★★☆ |
+| `include/file_utils.h` | File utility header | ★★★★☆ |
+| `include/zip_utils.h` | ZIP utility header (new in v1.1.0) | ★★★★☆ |
+| `include/logger.h` | Logging system header (new in v1.1.0) | ★★★☆☆ |
 
-### 3. 文档文件
+### 3. Build and Compilation Files
 
-| 文件 | 描述 | 读者 |
-|------|------|------|
-| `README.md` | 项目主文档 | 所有用户 |
-| `USAGE.md` | 详细使用指南 | 终端用户 |
-| `INSTALL.md` | 安装指南 | 新用户 |
-| `PROJECT_SUMMARY.md` | 项目技术总结 | 开发者 |
-| `FINAL_PROJECT_STATUS.md` | 项目完成状态 | 项目管理者 |
-| `test_epub_structure.md` | 测试EPUB结构说明 | 测试人员 |
+| File | Description | Purpose |
+|------|-------------|---------|
+| `CMakeLists.txt` | CMake build configuration file | Advanced build |
+| `tools/build-tool/compile_simple.bat` | Simple compilation script | Quick compilation |
+| `tools/build-tool/build.bat` | Full build script | Windows build |
 
-### 4. 配置和示例文件
+### 4. Documentation Files (Bilingual)
 
-| 文件 | 描述 | 用途 |
-|------|------|------|
-| `example_patterns.txt` | 广告模式示例 | 自定义配置 |
-| `test_integration.py` | Python集成测试脚本 | 功能测试 |
-| `LICENSE` | MIT许可证 | 法律文件 |
+| File | Description | Language |
+|------|-------------|----------|
+| `README.md` | Project main documentation | English |
+| `docs/README.md` | Complete project documentation | English |
+| `docs/README_ZH.md` | 完整项目文档 | Chinese |
+| `docs/USAGE.md` | Detailed usage guide | English |
+| `docs/USAGE_ZH.md` | 详细使用指南 | Chinese |
+| `docs/INSTALL.md` | Installation instructions | English |
+| `docs/INSTALL_ZH.md` | 安装说明 | Chinese |
+| `docs/PROJECT_SUMMARY.md` | Technical project summary | English |
+| `docs/PROJECT_SUMMARY_ZH.md` | 项目技术总结 | Chinese |
+| `docs/FINAL_PROJECT_STATUS.md` | Project completion status | English |
+| `docs/FINAL_PROJECT_STATUS_ZH.md` | 项目完成状态 | Chinese |
+| `docs/INDEX.md` | This file | English |
 
-## 文件依赖关系
+### 5. Configuration and Example Files
+
+| File | Description | Purpose |
+|------|-------------|---------|
+| `example_patterns.txt` | Ad pattern examples | Custom configuration |
+| `tools/test/test_main.cpp` | Unit tests | Function testing |
+| `tools/test/test_refactored.bat` | Refactored version tests | Integration testing |
+| `LICENSE` | MIT License | Legal document |
+
+## File Dependencies
 
 ```mermaid
 graph TD
     A[main.cpp] --> B[epub_processor.h]
     A --> C[ad_patterns.h]
     A --> D[file_utils.h]
+    A --> E[zip_utils.h]
+    A --> F[logger.h]
     
-    B --> E[epub_processor.cpp]
-    C --> F[ad_patterns.cpp]
-    D --> G[file_utils.cpp]
+    B --> G[epub_processor.cpp]
+    C --> H[ad_patterns.cpp]
+    D --> I[file_utils.cpp]
+    E --> J[zip_utils_impl.cpp]
+    F --> K[logger.cpp]
     
-    E --> H[实际EPUB处理]
-    F --> I[广告模式匹配]
-    G --> J[文件系统操作]
+    G --> L[Actual EPUB processing]
+    H --> M[Ad pattern matching]
+    I --> N[File system operations]
+    J --> O[ZIP file operations]
+    K --> P[Logging system]
     
-    K[CMakeLists.txt] --> L[构建配置]
-    M[compile_simple.bat] --> N[快速编译]
+    Q[CMakeLists.txt] --> R[Build configuration]
+    S[tools/build-tool/compile_simple.bat] --> T[Quick compilation]
 ```
 
-## 编译流程
+## Compilation Process
 
-### 方法1：简单编译（推荐）
+### Method 1: Simple Compilation (Recommended)
 ```bash
-# 运行编译脚本
-compile_simple.bat
+# Run compilation script
+tools/build-tool/compile_simple.bat
 
-# 或手动编译
+# Or compile manually
 mkdir bin
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner.exe -D_WIN32
 ```
 
-### 方法2：CMake构建
+### Method 2: CMake Build
 ```bash
 mkdir build
 cd build
@@ -101,80 +150,92 @@ cmake ..
 cmake --build .
 ```
 
-## 使用流程
+## Usage Process
 
-### 基本使用
-1. **编译程序**：运行 `compile_simple.bat`
-2. **查看帮助**：`bin\epub_cleaner.exe --help`
-3. **清理文件**：`bin\epub_cleaner.exe -i input.epub -o output.epub`
+### Basic Usage
+1. **Compile program**: Run `tools/build-tool/compile_simple.bat`
+2. **View help**: `bin\epub_cleaner.exe --help`
+3. **Clean file**: `bin\epub_cleaner.exe -i input.epub -o output.epub`
 
-### 高级使用
-1. **批量处理**：使用 `-I` 和 `-O` 参数
-2. **自定义模式**：创建模式文件，使用 `-p` 参数
-3. **详细输出**：添加 `-v` 参数
+### Advanced Usage
+1. **Batch processing**: Use `-I` and `-O` parameters
+2. **Custom patterns**: Create pattern file, use `-p` parameter
+3. **Verbose output**: Add `-v` parameter
+4. **Debug mode**: Add `-d` parameter
+5. **List patterns**: Use `--list-patterns` parameter
 
-## 文件维护
+## File Maintenance
 
-### 需要定期更新的文件
-1. `example_patterns.txt` - 随着新广告模式出现需要更新
-2. `README.md` - 随着功能变化需要更新
-3. `ad_patterns.cpp` - 添加新的内置广告模式
+### Files that need regular updates
+1. `example_patterns.txt` - Update as new ad patterns appear
+2. `docs/USAGE.md` and `docs/USAGE_ZH.md` - Update as features change
+3. `src/ad_patterns.cpp` - Add new built-in ad patterns
 
-### 一般不需要修改的文件
-1. `LICENSE` - 许可证文件
-2. 头文件接口 - 保持向后兼容
-3. 核心算法文件 - 除非有重大改进
+### Files that generally don't need modification
+1. `LICENSE` - License file
+2. Header file interfaces - Maintain backward compatibility
+3. Core algorithm files - Unless major improvements
 
-## 文件版本控制
+## File Version Control
 
-### v1.0.0 文件清单
+### v1.1.0 File List
 ```
-版本: v1.0.0
-日期: 2024-01-26
-文件数: 23个
-总大小: ~150KB
-代码行数: ~4,500行
+Version: v1.1.0
+Date: 2024-01-26
+Total files: 32
+Total size: ~180KB
+Lines of code: ~4,800 lines
 ```
 
-### 文件分类统计
-- **源代码**：4个.cpp + 3个.h = 7个文件
-- **文档**：7个.md文件
-- **配置**：3个.txt/.bat文件
-- **构建**：2个构建文件
-- **输出**：1个目录（bin）
-- **其他**：3个目录
+### File Category Statistics
+- **Source code**: 7 .cpp + 5 .h = 12 files
+- **Documentation**: 12 .md files (6 English + 6 Chinese)
+- **Configuration**: 4 .txt/.bat files
+- **Build**: 3 build files
+- **Output**: 1 directory (bin)
+- **Other**: 4 directories
 
-## 注意事项
+## Important Notes
 
-1. **不要删除**：`src/` 和 `include/` 目录中的文件
-2. **可以删除**：`bin/` 目录可以清理后重新编译
-3. **备份重要**：修改核心文件前请备份
-4. **测试验证**：修改后运行测试脚本验证
+1. **Do not delete**: Files in `src/` and `include/` directories
+2. **Can delete**: `bin/` directory can be cleaned and recompiled
+3. **Backup important**: Backup before modifying core files
+4. **Test verification**: Run test scripts after modifications
+5. **Bilingual documentation**: Keep English and Chinese versions synchronized
 
-## 快速参考
+## Quick Reference
 
-### 编译命令
+### Compilation Commands
 ```bash
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. \
-    src/main.cpp src/epub_processor.cpp \
-    src/ad_patterns.cpp src/file_utils.cpp \
+    src/main.cpp src/epub_processor.cpp src/ad_patterns.cpp \
+    src/file_utils.cpp src/zip_utils_impl.cpp src/logger.cpp \
     -o bin/epub_cleaner.exe -D_WIN32
 ```
 
-### 运行命令
+### Running Commands
 ```bash
-# 基本清理
+# Basic cleaning
 epub_cleaner -i book.epub -o clean_book.epub
 
-# 批量处理
+# Batch processing
 epub_cleaner -I ./input -O ./output -v
 
-# 自定义模式
+# Custom patterns
 epub_cleaner -i book.epub -p my_patterns.txt
+
+# Debug mode
+epub_cleaner -i book.epub -o clean_book.epub -d
+
+# List built-in patterns
+epub_cleaner --list-patterns
 ```
 
 ---
 
-**最后更新**：2024年1月26日
-**维护状态**：活跃
-**文档版本**：v1.0.0
+**Last Updated**: January 26, 2024
+**Maintenance Status**: Active
+**Document Version**: v1.1.0
+**Build Tools Location**: tools/build-tool/
+**Test Tools Location**: tools/test/
+**Documentation Status**: ✅ Bilingual (English/Chinese)

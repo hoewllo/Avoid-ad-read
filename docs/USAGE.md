@@ -1,18 +1,21 @@
-# EPUB广告清理工具 - 使用指南
+# EPUB Ad Cleaner - Usage Guide (v1.1.0)
 
-## 快速开始
+## Quick Start
 
-### 1. 编译程序
+### 1. Compile the Program
 
 #### Windows
 ```bash
-# 方法1: 使用构建脚本
-build.bat
+# Method 1: Use the simple compilation script
+tools/build-tool/compile_simple.bat
 
-# 方法2: 手动使用CMake
+# Method 2: Use the full build script
+tools/build-tool/build.bat
+
+# Method 3: Manual CMake
 mkdir build
 cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
+cmake .. -G \"Visual Studio 17 2022\" -A x64
 cmake --build . --config Release
 ```
 
@@ -24,64 +27,90 @@ cmake ..
 make
 ```
 
-### 2. 基本使用
+### 2. Basic Usage
 
 ```bash
-# 清理单个EPUB文件
+# Clean a single EPUB file
 epub_cleaner -i input.epub -o output.epub
 
-# 批量处理目录
+# Batch process a directory
 epub_cleaner -I ./input_dir -O ./output_dir
 
-# 启用详细输出
+# Enable verbose output
 epub_cleaner -i input.epub -v
+
+# List built-in ad patterns
+epub_cleaner --list-patterns
+
+# Enable debug mode
+epub_cleaner -i input.epub -d
+
+# Quiet mode (only errors)
+epub_cleaner -i input.epub -q
 ```
 
-## 详细功能说明
+## Detailed Function Description
 
-### 广告模式
+### Ad Patterns
 
-工具内置了7种广告模式，可以识别以下类型的广告内容：
+The tool has 7 built-in ad patterns that can identify the following types of ad content:
 
-1. **GitHub项目推广**：包含GitHub链接和项目名称
-2. **下载广告**：包含"下载"关键词
-3. **特殊字符**：零宽字符等特殊Unicode字符
-4. **空方括号**：可能被隐藏的广告标记
+1. **GitHub project promotion**: Contains GitHub links and project names
+2. **Download ads**: Contains the keyword \"download\"
+3. **Special characters**: Zero-width characters and other special Unicode characters
+4. **Empty brackets**: Possibly hidden ad markers
 
-### 自定义广告模式
+### Custom Ad Patterns
 
-您可以创建自定义广告模式文件：
+You can create custom ad pattern files:
 
 ```bash
-# 创建模式文件 custom_patterns.txt
-# 每行一个正则表达式
+# Create pattern file custom_patterns.txt
+# One regular expression per line
 
-# 示例：匹配特定广告
-【.*广告.*】
-【.*推广.*】
+# Example: Match specific ads
+【.*ad.*】
+【.*promotion.*】
 
-# 使用自定义模式
+# Use custom patterns
 epub_cleaner -i input.epub -p custom_patterns.txt
 ```
 
-### 备份机制
+### Backup Mechanism
 
-默认情况下，程序会为每个处理的文件创建.bak备份文件。
+By default, the program creates .bak backup files for each processed file.
 
 ```bash
-# 禁用备份
+# Disable backup
 epub_cleaner -i input.epub -n
 
-# 备份文件位置：与原始文件相同目录
-input.epub      # 原始文件
-input.epub.bak  # 备份文件
+# Backup file location: Same directory as original file
+input.epub      # Original file
+input.epub.bak  # Backup file
 ```
 
-## 高级用法
+## New Features in v1.1.0
 
-### 批量处理脚本
+### Enhanced ZIP Processing
+- **New zip_utils module**: Improved ZIP file handling with platform-specific implementations
+- **Better error handling**: More detailed error messages for ZIP operations
+- **Fallback mechanisms**: Multiple fallback methods for ZIP extraction/compression
 
-创建批处理脚本 `clean_all.bat` (Windows)：
+### Advanced Logging System
+- **Multi-level logging**: DEBUG, INFO, WARN, ERROR, FATAL levels
+- **Configurable output**: Control log verbosity with -v, -d, -q flags
+- **Timestamp support**: Optional timestamps in log messages
+
+### Improved File Utilities
+- **Enhanced file operations**: Better file and directory management
+- **Cross-platform compatibility**: Improved support for Windows and Unix systems
+- **Error recovery**: Better handling of file system errors
+
+## Advanced Usage
+
+### Batch Processing Script
+
+Create a batch script `clean_all.bat` (Windows):
 ```batch
 @echo off
 setlocal
@@ -90,149 +119,188 @@ set INPUT_DIR=books
 set OUTPUT_DIR=cleaned_books
 set LOG_FILE=cleanup.log
 
-echo 开始批量清理EPUB文件...
-echo 输入目录: %INPUT_DIR%
-echo 输出目录: %OUTPUT_DIR%
+echo Starting batch EPUB cleaning...
+echo Input directory: %INPUT_DIR%
+echo Output directory: %OUTPUT_DIR%
 echo.
 
-if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
+if not exist \"%OUTPUT_DIR%\" mkdir \"%OUTPUT_DIR%\"
 
-epub_cleaner -I "%INPUT_DIR%" -O "%OUTPUT_DIR%" -v > "%LOG_FILE%" 2>&1
+epub_cleaner -I \"%INPUT_DIR%\" -O \"%OUTPUT_DIR%\" -v > \"%LOG_FILE%\" 2>&1
 
 if errorlevel 1 (
-    echo 处理失败，请查看日志文件: %LOG_FILE%
+    echo Processing failed, please check log file: %LOG_FILE%
 ) else (
-    echo 处理完成! 日志文件: %LOG_FILE%
+    echo Processing completed! Log file: %LOG_FILE%
 )
 
 pause
 ```
 
-### 集成到工作流
+### Integration into Workflow
 
-您可以将此工具集成到电子书处理流水线中：
+You can integrate this tool into an ebook processing pipeline:
 
 ```bash
 #!/bin/bash
 # ebook_pipeline.sh
 
-INPUT="$1"
-OUTPUT="${INPUT%.epub}_clean.epub"
-LOG="clean_$(date +%Y%m%d_%H%M%S).log"
+INPUT=\"$1\"
+OUTPUT=\"${INPUT%.epub}_clean.epub\"
+LOG=\"clean_$(date +%Y%m%d_%H%M%S).log\"
 
-# 步骤1: 清理广告
-epub_cleaner -i "$INPUT" -o "$OUTPUT" -v > "$LOG" 2>&1
+# Step 1: Clean ads
+epub_cleaner -i \"$INPUT\" -o \"$OUTPUT\" -v > \"$LOG\" 2>&1
 
 if [ $? -eq 0 ]; then
-    echo "广告清理完成: $OUTPUT"
+    echo \"Ad cleaning completed: $OUTPUT\"
     
-    # 步骤2: 可选的其他处理
+    # Step 2: Optional additional processing
     # ...
     
-    # 步骤3: 验证结果
-    echo "验证清理结果..."
-    grep -q "【" "$OUTPUT" && echo "警告: 可能还有广告残留" || echo "验证通过"
+    # Step 3: Verify results
+    echo \"Verifying cleaning results...\"
+    grep -q \"【\" \"$OUTPUT\" && echo \"Warning: Possible ad residue\" || echo \"Verification passed\"
 else
-    echo "清理失败，请查看日志: $LOG"
+    echo \"Cleaning failed, please check log: $LOG\"
     exit 1
 fi
 ```
 
-## 性能优化
+## Performance Optimization
 
-### 处理大量文件
+### Processing Large Files
 
-对于包含大量XHTML文件的大型EPUB：
+For large EPUBs containing many XHTML files:
 
 ```bash
-# 使用更少的内存（逐文件处理）
+# Use less memory (process file by file)
 epub_cleaner -i large_book.epub --no-backup
 
-# 批量处理时限制并发（如果需要）
-# 注意：当前版本是单线程的
+# Limit concurrency during batch processing (if needed)
+# Note: Current version is single-threaded
 ```
 
-### 磁盘空间
+### Disk Space
 
-- 临时目录：程序会创建临时目录，需要足够的磁盘空间
-- 备份文件：每个文件都会创建备份，确保有足够空间
+- Temporary directory: The program creates temporary directories, requires sufficient disk space
+- Backup files: Each file creates a backup, ensure enough space
 
-## 故障排除
+## Troubleshooting
 
-### 常见错误
+### Common Errors
 
-1. **"无法打开文件"**
-   - 检查文件路径是否正确
-   - 检查文件权限
+1. **\"Cannot open file\"**
+   - Check if the file path is correct
+   - Check file permissions
    
-2. **"正则表达式错误"**
-   - 检查自定义模式文件中的正则表达式语法
-   - 尝试简化模式
+2. **\"Regular expression error\"**
+   - Check regex syntax in custom pattern files
+   - Try simplifying patterns
    
-3. **"内存不足"**
-   - 处理非常大的文件时可能出现
-   - 尝试分批次处理
+3. **\"Insufficient memory\"**
+   - May occur when processing very large files
+   - Try processing in batches
 
-### 调试技巧
+4. **\"ZIP extraction failed\"**
+   - Ensure system has ZIP utilities installed
+   - Check file permissions
+   - Try running with administrator privileges
 
-1. **启用详细输出**：使用 `-v` 参数
-2. **检查临时文件**：程序会在系统临时目录创建文件
-3. **查看日志**：重定向输出到日志文件
+### Debugging Tips
 
-## 示例
+1. **Enable verbose output**: Use `-v` parameter
+2. **Enable debug mode**: Use `-d` parameter for detailed logs
+3. **Check temporary files**: The program creates files in the system temp directory
+4. **View logs**: Redirect output to log files
 
-### 示例1：基本清理
+## Examples
 
-```bash
-# 输入文件: book.epub
-# 输出文件: book_clean.epub
-# 创建备份: 是
-# 详细输出: 否
-
-e pub_cleaner -i book.epub
-```
-
-### 示例2：批量处理并记录
+### Example 1: Basic Cleaning
 
 ```bash
-# 处理目录中的所有EPUB文件
-# 输出到新目录
-# 记录详细日志
+# Input file: book.epub
+# Output file: book_clean.epub
+# Create backup: Yes
+# Verbose output: No
 
-e pub_cleaner -I ./my_books -O ./cleaned_books -v > cleanup.log
+epub_cleaner -i book.epub
 ```
 
-### 示例3：自定义模式清理
+### Example 2: Batch Processing with Logging
 
 ```bash
-# 使用自定义广告模式
-# 不创建备份
-# 输出到指定文件
+# Process all EPUB files in directory
+# Output to new directory
+# Record detailed logs
 
-e pub_cleaner -i book.epub -o clean.epub -p my_patterns.txt -n
+epub_cleaner -I ./my_books -O ./cleaned_books -v > cleanup.log
 ```
 
-## 更新与维护
+### Example 3: Custom Pattern Cleaning with Debug
 
-### 更新广告模式
+```bash
+# Use custom ad patterns
+# Do not create backup
+# Enable debug output
 
-1. 编辑 `example_patterns.txt` 文件
-2. 添加新的正则表达式模式
-3. 使用 `-p` 参数指定模式文件
+epub_cleaner -i book.epub -o clean.epub -p my_patterns.txt -n -d
+```
 
-### 报告问题
+### Example 4: Quiet Mode Processing
 
-如果您发现广告清理不彻底或程序有问题：
+```bash
+# Process in quiet mode (only show errors)
+# Useful for automated scripts
 
-1. 保存原始EPUB文件
-2. 记录使用的命令和参数
-3. 提供错误信息或日志
-4. 报告具体的广告内容模式
+epub_cleaner -i book.epub -o clean.epub -q
+```
 
-## 许可证
+## Updates and Maintenance
 
-本项目使用MIT许可证。详情请查看LICENSE文件。
+### Updating Ad Patterns
 
-## 贡献
+1. Edit the `example_patterns.txt` file
+2. Add new regular expression patterns
+3. Use `-p` parameter to specify pattern file
 
-欢迎贡献代码、报告问题或提出改进建议！
+### Reporting Issues
+
+If you find incomplete ad cleaning or program issues:
+
+1. Save the original EPUB file
+2. Record the commands and parameters used
+3. Provide error messages or logs
+4. Report specific ad content patterns
+
+## Testing
+
+### Unit Tests
+```bash
+# Compile and run unit tests
+cd tools/test
+g++ -std=c++17 -I../../include -I../.. test_main.cpp ../../src/file_utils.cpp ../../src/ad_patterns.cpp ../../src/logger.cpp -o test_runner
+test_runner.exe
+```
+
+### Integration Tests
+```bash
+# Run refactored version tests
+tools/test/test_refactored.bat
+```
+
+## License
+
+This project uses the MIT License. See LICENSE file for details.
+
+## Contributing
+
+Welcome to contribute code, report issues, or suggest improvements!
+
+---
+
+**Project Status**: ✅ Completed and Refactored  
+**Version**: v1.1.0  
+**Last Updated**: January 26, 2024  
+**Build Tools Location**: tools/build-tool/  
+**Test Tools Location**: tools/test/

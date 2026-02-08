@@ -1,114 +1,152 @@
-# EPUB广告清理工具 (C++版本)
+# EPUB Ad Cleaner (C++ Version)
 
-一个用C++编写的EPUB广告内容清理工具，支持批量处理、自动解压、广告清理和重新打包。
+A C++ EPUB ad content cleaning tool that supports batch processing, automatic extraction, ad cleaning, and repackaging.
 
-## 📦 快速开始
+## 📦 Quick Start
 
-### 编译程序
+### Compile the Program
 ```bash
-# 使用简单编译脚本
-compile_simple.bat
+# Use the simple compilation script
+tools/build-tool/compile_simple.bat
 
-# 或手动编译
+# Or use the full build script
+tools/build-tool/build.bat
+
+# Or compile manually
 mkdir bin
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner.exe -D_WIN32
 ```
 
-### 基本使用
+### Basic Usage
 ```bash
-# 清理单个EPUB文件
+# Clean a single EPUB file
 bin\epub_cleaner.exe -i input.epub -o output.epub
 
-# 批量处理目录
+# Batch process a directory
 bin\epub_cleaner.exe -I ./books -O ./cleaned_books -v
+
+# List built-in ad patterns
+bin\epub_cleaner.exe --list-patterns
 ```
 
-## 📚 详细文档
+## 📚 Documentation
 
-所有详细文档已移动到 `docs/` 目录：
+All detailed documentation is available in the `docs/` directory:
 
-| 文档 | 描述 |
-|------|------|
-| 📖 [README.md](docs/README.md) | 完整项目文档 |
-| 📋 [USAGE.md](docs/USAGE.md) | 详细使用指南 |
-| 🔧 [INSTALL.md](docs/INSTALL.md) | 安装说明 |
-| 📊 [PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md) | 项目技术总结 |
-| ✅ [FINAL_PROJECT_STATUS.md](docs/FINAL_PROJECT_STATUS.md) | 项目完成状态 |
-| 📑 [INDEX.md](docs/INDEX.md) | 文件索引 |
-| 🧪 [test_epub_structure.md](docs/test_epub_structure.md) | 测试说明 |
-| ⚖️ [LICENSE](docs/LICENSE) | MIT许可证 |
+| Document | Description | Language |
+|----------|-------------|----------|
+| 📖 [README](docs/README) | Complete project documentation | English |
+| 📖 [README_ZH](docs/README_ZH) | 完整项目文档 | Chinese |
+| 📋 [USAGE](docs/USAGE) | Detailed usage guide | English |
+| 📋 [USAGE_ZH](docs/USAGE_ZH) | 详细使用指南 | Chinese |
+| 🔧 [INSTALL](docs/INSTALL) | Installation instructions | English |
+| 🔧 [INSTALL_ZH](docs/INSTALL_ZH) | 安装说明 | Chinese |
+| 📊 [PROJECT_SUMMARY](docs/PROJECT_SUMMARY) | Technical project summary | English |
+| 📊 [PROJECT_SUMMARY_ZH](docs/PROJECT_SUMMARY_ZH) | 项目技术总结 | Chinese |
+| ✅ [FINAL_PROJECT_STATUS](docs/FINAL_PROJECT_STATUS) | Project completion status | English |
+| ✅ [FINAL_PROJECT_STATUS_ZH](docs/FINAL_PROJECT_STATUS_ZH) | 项目完成状态 | Chinese |
+| 🧪 [TEST_EPUB_STRUCTURE](docs/TEST_EPUB_STRUCTURE) | Test documentation | English |
+| 🧪 [TEST_EPUB_STRUCTURE_ZH](docs/TEST_EPUB_STRUCTURE_ZH) | 测试说明 | Chinese |
 
-## 🚀 核心功能
+## 🚀 Core Features
 
-- **自动解压EPUB文件**：将EPUB文件解压到临时目录
-- **智能广告检测**：使用正则表达式匹配多种广告模式
-- **批量处理**：支持单个文件或目录批量处理
-- **备份机制**：自动创建.bak备份文件
-- **重新打包**：清理后重新打包为干净的EPUB文件
-- **参数化配置**：支持命令行参数灵活配置
+- **Automatic EPUB extraction**: Extract EPUB files to temporary directories
+- **Intelligent ad detection**: Use regex patterns to match various ad formats
+- **Batch processing**: Support single file or directory batch processing
+- **Backup mechanism**: Automatically create .bak backup files
+- **Repackaging**: Clean and repackage into clean EPUB files
+- **Parameterized configuration**: Flexible command-line parameter configuration
+- **Detailed logging**: Support DEBUG, INFO, WARN, ERROR log levels
 
-## 🛠️ 项目结构
+## 🛠️ Project Structure
 
 ```
 epub_cleaner/
-├── docs/                    # 所有文档
-├── src/                    # C++源代码
-│   ├── main.cpp           # 主程序入口
-│   ├── epub_processor.cpp # EPUB处理核心
-│   ├── ad_patterns.cpp    # 广告模式管理
-│   └── file_utils.cpp     # 文件操作工具
-├── include/               # C++头文件
+├── docs/                    # All documentation (English/Chinese)
+├── src/                    # C++ source code
+│   ├── main.cpp           # Main program entry
+│   ├── epub_processor.cpp # EPUB processing core
+│   ├── ad_patterns.cpp    # Ad pattern management
+│   ├── file_utils.cpp     # File operation utilities
+│   ├── zip_utils_impl.cpp # ZIP file processing implementation
+│   ├── zlib_utils.cpp     # zlib compression utilities
+│   └── logger.cpp         # Logging system
+├── include/               # C++ header files
 │   ├── epub_processor.h
 │   ├── ad_patterns.h
-│   └── file_utils.h
-├── bin/                   # 编译输出目录
-├── build/                 # 构建目录
-├── .gitignore            # Git忽略文件
-├── CMakeLists.txt        # CMake构建配置
-├── build.bat             # Windows构建脚本
-├── compile_simple.bat    # 简单编译脚本
-├── example_patterns.txt  # 广告模式示例
-└── test_integration.py   # Python集成测试
+│   ├── file_utils.h
+│   ├── zip_utils.h
+│   └── logger.h
+├── tools/                 # Tool scripts
+│   ├── build-tool/       # Build tools
+│   │   ├── build.bat     # Full build script
+│   │   └── compile_simple.bat # Simple compilation script
+│   └── test/             # Testing tools
+│       ├── test_main.cpp # Unit tests
+│       └── test_refactored.bat # Refactored version tests
+├── bin/                   # Compiled output directory
+├── build/                 # CMake build directory
+├── .gitignore            # Git ignore file
+├── CMakeLists.txt        # CMake build configuration
+├── example_patterns.txt  # Ad pattern examples
+└── LICENSE               # MIT License
 ```
 
-## 📋 命令行参数
+## 📋 Command Line Arguments
 
 ```bash
-# 基本参数
--i, --input FILE        输入EPUB文件路径
--o, --output FILE       输出EPUB文件路径
--I, --input-dir DIR     输入目录（批量处理）
--O, --output-dir DIR    输出目录（批量处理）
+# Basic parameters
+-i, --input FILE        Input EPUB file path
+-o, --output FILE       Output EPUB file path
+-I, --input-dir DIR     Input directory (batch processing)
+-O, --output-dir DIR    Output directory (batch processing)
 
-# 高级选项
--p, --patterns FILE     自定义广告模式文件
--v, --verbose           启用详细输出
--n, --no-backup         不创建备份文件
--h, --help              显示帮助信息
--V, --version           显示版本信息
+# Ad pattern options
+-p, --patterns FILE     Custom ad pattern file
+--list-patterns        List all built-in ad patterns
+
+# Logging and output options
+-v, --verbose           Enable verbose output
+-q, --quiet             Silent mode, only show errors
+-d, --debug             Enable debug output
+
+# Other options
+-n, --no-backup         Do not create backup files
+-h, --help              Show help information
+-V, --version           Show version information
 ```
 
-## 🧪 测试
+## 🧪 Testing
 
-### 集成测试
+### Unit Tests
 ```bash
-# 运行Python集成测试
-python test_integration.py
+# Compile and run unit tests
+cd tools/test
+g++ -std=c++17 -I../../include -I../.. test_main.cpp ../../src/file_utils.cpp ../../src/ad_patterns.cpp ../../src/logger.cpp -o test_runner
+test_runner.exe
 ```
 
-### 创建测试EPUB
-参考 `docs/test_epub_structure.md` 创建测试文件。
+### Integration Tests
+```bash
+# Run refactored version tests
+tools/test/test_refactored.bat
+```
 
-## 📄 许可证
+### Create Test EPUB
+Refer to `docs/TEST_EPUB_STRUCTURE` to create test files.
 
-MIT License - 详见 [docs/LICENSE](docs/LICENSE)
+## 📄 License
 
-## 🤝 贡献
+MIT License - See [LICENSE](LICENSE)
 
-欢迎贡献代码、报告问题或提出改进建议！
+## 🤝 Contributing
+
+Welcome to contribute code, report issues, or suggest improvements!
 
 ---
 
-**项目状态**: ✅ 已完成
-**版本**: v1.0.0
-**最后更新**: 2024年1月26日
+**Project Status**: ✅ Completed and Refactored
+**Version**: v1.1.0
+**Last Updated**: January 26, 2024
+**Build Tools Location**: tools/build-tool/
+**Test Tools Location**: tools/test/

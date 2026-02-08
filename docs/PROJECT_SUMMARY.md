@@ -1,93 +1,95 @@
-# EPUB广告清理工具 - 项目总结
+# EPUB Ad Cleaner - Project Summary
 
-## 项目概述
+## Project Overview
 
-本项目是一个完整的C++ EPUB广告内容清理解决方案，旨在自动检测和移除EPUB电子书中的嵌入式广告内容。
+This project is a complete C++ EPUB ad content cleaning solution designed to automatically detect and remove embedded ad content in EPUB ebooks.
 
-## 项目结构
+## Project Structure
 
 ```
 epub_cleaner_project/
-├── src/                    # C++源文件
-│   ├── main.cpp           # 主程序入口，命令行参数处理
-│   ├── epub_processor.cpp # EPUB处理核心逻辑
-│   ├── ad_patterns.cpp    # 广告模式定义和管理
-│   └── file_utils.cpp     # 文件操作工具函数
-├── include/               # C++头文件
+├── src/                    # C++ source files
+│   ├── main.cpp           # Main program entry, command-line argument processing
+│   ├── epub_processor.cpp # EPUB processing core logic
+│   ├── ad_patterns.cpp    # Ad pattern definition and management
+│   └── file_utils.cpp     # File operation utility functions
+├── include/               # C++ header files
 │   ├── epub_processor.h
 │   ├── ad_patterns.h
 │   └── file_utils.h
-├── build.bat             # Windows构建脚本
-├── CMakeLists.txt        # CMake构建配置
-├── README.md             # 项目主文档
-├── USAGE.md              # 详细使用指南
-├── example_patterns.txt  # 示例广告模式配置
-├── test_epub_structure.md # 测试EPUB结构说明
-├── test_integration.py   # Python集成测试脚本
-├── LICENSE               # MIT许可证
-└── PROJECT_SUMMARY.md    # 本项目总结文档
+├── tools/build-tool/      # Build tools
+│   ├── build.bat         # Windows build script
+│   └── compile_simple.bat # Simple compilation script
+├── CMakeLists.txt        # CMake build configuration
+├── README.md             # Main project documentation
+├── USAGE.md              # Detailed usage guide
+├── example_patterns.txt  # Example ad pattern configuration
+├── test_epub_structure.md # Test EPUB structure documentation
+├── test_integration.py   # Python integration test script
+├── LICENSE               # MIT License
+└── PROJECT_SUMMARY.md    # This project summary document
 
-遗留的Python脚本（参考实现）：
-├── clean_ads.py          # 初始Python清理脚本
-├── clean_ads_advanced.py # 高级Python清理脚本
-└── verify_cleanup.py     # Python验证脚本
+Legacy Python scripts (reference implementation):
+├── clean_ads.py          # Initial Python cleaning script
+├── clean_ads_advanced.py # Advanced Python cleaning script
+└── verify_cleanup.py     # Python verification script
 ```
 
-## 核心功能
+## Core Features
 
-### 1. EPUB文件处理
-- **自动解压**：将EPUB文件解压到临时目录
-- **内容清理**：遍历所有XHTML/HTML文件，移除广告内容
-- **重新打包**：清理后重新打包为干净的EPUB文件
+### 1. EPUB File Processing
+- **Automatic extraction**: Extract EPUB files to temporary directories
+- **Content cleaning**: Traverse all XHTML/HTML files, remove ad content
+- **Repackaging**: Clean and repackage into clean EPUB files
 
-### 2. 广告检测
-- **多模式匹配**：支持7种内置广告模式
-- **正则表达式**：使用C++ regex库进行高效匹配
-- **自定义模式**：支持从文件加载自定义广告模式
+### 2. Ad Detection
+- **Multi-pattern matching**: Support for 7 built-in ad patterns
+- **Regular expressions**: Use C++ regex library for efficient matching
+- **Custom patterns**: Support loading custom ad patterns from files
 
-### 3. 命令行界面
-- **参数化配置**：支持输入/输出文件/目录
-- **详细输出**：可选的详细日志模式
-- **备份机制**：自动创建.bak备份文件
+### 3. Command Line Interface
+- **Parameterized configuration**: Support input/output files/directories
+- **Verbose output**: Optional detailed logging mode
+- **Backup mechanism**: Automatically create .bak backup files
 
-### 4. 批量处理
-- **目录遍历**：批量处理目录中的所有EPUB文件
-- **进度统计**：显示处理进度和统计信息
-- **错误处理**：完善的错误处理和异常捕获
+### 4. Batch Processing
+- **Directory traversal**: Batch process all EPUB files in a directory
+- **Progress statistics**: Display processing progress and statistics
+- **Error handling**: Comprehensive error handling and exception catching
 
-## 技术实现
+## Technical Implementation
 
-### 主要类
+### Main Classes
 
-1. **EpubProcessor** - EPUB处理核心类
-   - 处理单个文件和批量目录
-   - 管理解压、清理、重新打包流程
-   - 统计处理结果
+1. **EpubProcessor** - EPUB processing core class
+   - Process single files and batch directories
+   - Manage extraction, cleaning, repackaging workflow
+   - Statistics processing results
 
-2. **AdPatterns** - 广告模式管理
-   - 内置7种广告模式
-   - 支持自定义模式加载
-   - 正则表达式验证和转义
+2. **AdPatterns** - Ad pattern management
+   - 7 built-in ad patterns
+   - Support custom pattern loading
+   - Regular expression validation and escaping
 
-3. **FileUtils** - 文件操作工具
-   - 文件读写、复制、移动
-   - 临时目录管理
-   - ZIP压缩/解压（使用系统命令）
+3. **FileUtils** - File operation utilities
+   - File read/write, copy, move
+   - Temporary directory management
+   - ZIP compression/decompression (using system commands)
 
-### 依赖库
+### Dependencies
 
-- **C++17标准库**：filesystem, regex, fstream等
-- **zlib**：ZIP压缩/解压（可选）
-- **libzip**：ZIP操作库（可选）
+- **C++17 Standard Library**: filesystem, regex, fstream, etc.
+- **zlib**: ZIP compression/decompression (optional)
+- **libzip**: ZIP operation library (optional)
 
-## 构建说明
+## Build Instructions
 
 ### Windows
 ```bash
-# 使用构建脚本
-build.bat
+# Use build script
+tools/build-tool/build.bat
 
-# 或手动构建
+# Or manual build
 mkdir build
 cd build
 cmake .. -G "Visual Studio 17 2022" -A x64
@@ -102,136 +104,136 @@ cmake ..
 make
 ```
 
-## 使用方法
+## Usage
 
-### 基本命令
+### Basic Commands
 ```bash
-# 清理单个文件
+# Clean single file
 epub_cleaner -i input.epub -o output.epub
 
-# 批量处理目录
+# Batch process directory
 epub_cleaner -I ./books -O ./cleaned_books -v
 
-# 使用自定义模式
+# Use custom patterns
 epub_cleaner -i input.epub -p custom_patterns.txt
 ```
 
-### 命令行参数
+### Command Line Arguments
 ```
--i, --input FILE        输入EPUB文件路径
--o, --output FILE       输出EPUB文件路径
--I, --input-dir DIR     输入目录（批量处理）
--O, --output-dir DIR    输出目录（批量处理）
--p, --patterns FILE     自定义广告模式文件
--v, --verbose           启用详细输出
--n, --no-backup         不创建备份文件
--h, --help              显示帮助信息
--V, --version           显示版本信息
+-i, --input FILE        Input EPUB file path
+-o, --output FILE       Output EPUB file path
+-I, --input-dir DIR     Input directory (batch processing)
+-O, --output-dir DIR    Output directory (batch processing)
+-p, --patterns FILE     Custom ad pattern file
+-v, --verbose           Enable verbose output
+-n, --no-backup         Do not create backup files
+-h, --help              Show help information
+-V, --version           Show version information
 ```
 
-## 广告模式
+## Ad Patterns
 
-### 内置模式
-1. GitHub项目推广广告
-2. 包含GitHub链接的广告
-3. 特定项目名称广告
-4. 通用下载广告
-5. 特殊Unicode字符
-6. 空方括号广告
-7. 项目下载组合广告
+### Built-in Patterns
+1. GitHub project promotion ads
+2. Ads containing GitHub links
+3. Specific project name ads
+4. General download ads
+5. Special Unicode characters
+6. Empty bracket ads
+7. Project download combination ads
 
-### 自定义模式
-创建文本文件，每行一个正则表达式：
+### Custom Patterns
+Create a text file with one regular expression per line:
 ```
-# 示例自定义模式
-【.*广告.*】
-【.*推广.*】
+# Example custom patterns
+【.*ad.*】
+【.*promotion.*】
 .*sponsor.*
 ```
 
-## 测试
+## Testing
 
-### 集成测试
+### Integration Tests
 ```bash
-# 运行Python集成测试
+# Run Python integration tests
 python test_integration.py
 ```
 
-### 手动测试
-1. 创建测试EPUB文件（参考test_epub_structure.md）
-2. 运行清理程序
-3. 验证清理结果
+### Manual Testing
+1. Create test EPUB file (refer to test_epub_structure.md)
+2. Run cleaning program
+3. Verify cleaning results
 
-## 性能考虑
+## Performance Considerations
 
-### 内存使用
-- 逐文件处理，避免大文件内存占用
-- 使用临时文件系统操作
+### Memory Usage
+- Process files one by one to avoid large file memory usage
+- Use temporary file system operations
 
-### 处理速度
-- 正则表达式预编译优化
-- 批量处理时顺序执行（可扩展为并行）
+### Processing Speed
+- Regular expression pre-compilation optimization
+- Sequential execution during batch processing (can be extended to parallel)
 
-### 磁盘空间
-- 临时目录自动清理
-- 备份文件可选择性创建
+### Disk Space
+- Automatic temporary directory cleanup
+- Selective backup file creation
 
-## 扩展性
+## Extensibility
 
-### 添加新广告模式
-1. 在`ad_patterns.cpp`的`getBuiltinPatterns()`中添加新模式
-2. 或使用自定义模式文件
+### Adding New Ad Patterns
+1. Add new patterns in `ad_patterns.cpp`'s `getBuiltinPatterns()`
+2. Or use custom pattern files
 
-### 支持新文件格式
-1. 扩展`FileUtils::findFilesRecursive()`支持新扩展名
-2. 在`EpubProcessor::cleanExtractedFiles()`中添加新文件类型处理
+### Supporting New File Formats
+1. Extend `FileUtils::findFilesRecursive()` to support new extensions
+2. Add new file type processing in `EpubProcessor::cleanExtractedFiles()`
 
-### 国际化
-1. 支持多语言广告模式
-2. 本地化错误消息
+### Internationalization
+1. Support multi-language ad patterns
+2. Localize error messages
 
-## 已知限制
+## Known Limitations
 
-### 当前版本
-1. ZIP操作依赖系统命令（可替换为zlib/minizip）
-2. 单线程处理（可扩展为多线程）
-3. 编码处理简化（可集成iconv/ICU）
+### Current Version
+1. ZIP operations depend on system commands (can be replaced with zlib/minizip)
+2. Single-threaded processing (can be extended to multi-threaded)
+3. Simplified encoding processing (can integrate iconv/ICU)
 
-### 平台依赖
-- Windows：使用PowerShell进行ZIP操作
-- Linux/macOS：使用unzip/zip命令
+### Platform Dependencies
+- Windows: Use PowerShell for ZIP operations
+- Linux/macOS: Use unzip/zip commands
 
-## 未来改进
+## Future Improvements
 
-### 短期目标
-1. 集成zlib/minizip库替代系统命令
-2. 添加多线程支持
-3. 改进错误处理和日志
+### Short-term Goals
+1. Integrate zlib/minizip library to replace system commands
+2. Add multi-threading support
+3. Improve error handling and logging
 
-### 长期目标
-1. 图形用户界面（GUI）
-2. 实时预览功能
-3. 机器学习广告检测
+### Long-term Goals
+1. Graphical User Interface (GUI)
+2. Real-time preview functionality
+3. Machine learning ad detection
 
-## 贡献指南
+## Contribution Guidelines
 
-1. Fork项目
-2. 创建功能分支
-3. 提交更改
-4. 创建Pull Request
+1. Fork the project
+2. Create a feature branch
+3. Commit changes
+4. Create Pull Request
 
-## 许可证
+## License
 
-MIT License - 详见LICENSE文件
+MIT License - See LICENSE file
 
-## 联系与支持
+## Contact and Support
 
-如有问题或建议，请提交GitHub Issue或联系项目维护者。
+If you have questions or suggestions, please submit GitHub Issues or contact the project maintainer.
 
 ---
 
-**项目状态**：已完成核心功能开发，具备生产使用条件。
+**Project Status**: Core functionality development completed, ready for production use.
 
-**最后更新**：2024年1月26日
+**Last Updated**: January 26, 2024
 
-**版本**：v1.0.0
+**Version**: v1.0.0
