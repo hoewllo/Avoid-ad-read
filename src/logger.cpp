@@ -77,7 +77,11 @@ namespace Logger {
             now.time_since_epoch()) % 1000;
         
         tm localTime;
+        #ifndef _WIN32
         localtime_s(&localTime, &time);
+        #elif defined(__unix__)
+        localtime_r(&time, &localTime);
+        #endif
         
         ostringstream oss;
         oss << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
