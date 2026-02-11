@@ -8,6 +8,7 @@
 #include <regex>
 #include <algorithm>
 #include <iomanip>
+#include <cctype>
 
 using namespace std;
 
@@ -331,6 +332,43 @@ bool EpubProcessor::cleanXhtmlFile(const fs::path& filePath) {
             return true;
         }
         
+        // 检测文件编码
+        // 检查XML声明中的编码属性
+        string encoding = "UTF-8"; // 默认假设为UTF-8
+        
+        // 查找XML声明
+        size_t xmlDeclStart = content.find("<?xml");
+        if (xmlDeclStart != string::npos) {
+            size_t xmlDeclEnd = content.find("?>", xmlDeclStart);
+            if (xmlDeclEnd != string::npos) {
+                string xmlDecl = content.substr(xmlDeclStart, xmlDeclEnd - xmlDeclStart + 2);
+                
+                // 查找encoding属性
+                size_t encodingPos = xmlDecl.find("encoding=");
+                if (encodingPos != string::npos) {
+                    size_t quoteStart = xmlDecl.find_first_of("'\"", encodingPos + 9);
+                    if (quoteStart != string::npos) {
+                        size_t quoteEnd = xmlDecl.find_first_of("'\"", quoteStart + 1);
+                        if (quoteEnd != string::npos) {
+                            encoding = xmlDecl.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+                            
+                            // 转换为大写以便比较
+                            string encodingUpper = encoding;
+                            transform(encodingUpper.begin(), encodingUpper.end(), encodingUpper.begin(), ::toupper);
+                            
+                            if (encodingUpper != "UTF-8" && encodingUpper != "UTF8") {
+                                if (verbose) {
+                                    cout << "    检测到编码: " << encoding << ", 将转换为UTF-8" << endl;
+                                }
+                                // 转换为UTF-8
+                                content = FileUtils::toUtf8(content, encoding);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         // 应用广告模式
         string cleanedContent = applyAdPatterns(content);
         
@@ -340,6 +378,45 @@ bool EpubProcessor::cleanXhtmlFile(const fs::path& filePath) {
                 cout << "    未发现广告内容: " << filePath.filename() << endl;
             }
             return true;
+        }
+        
+        // 确保XML声明中的编码是UTF-8
+        size_t xmlDeclStart2 = cleanedContent.find("<?xml");
+        if (xmlDeclStart2 != string::npos) {
+            size_t xmlDeclEnd2 = cleanedContent.find("?>", xmlDeclStart2);
+            if (xmlDeclEnd2 != string::npos) {
+                string xmlDecl = cleanedContent.substr(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2);
+                
+                // 检查并更新编码属性
+                size_t encodingPos = xmlDecl.find("encoding=");
+                if (encodingPos != string::npos) {
+                    // 更新为UTF-8
+                    string newXmlDecl = xmlDecl;
+                    size_t quoteStart = newXmlDecl.find_first_of("'\"", encodingPos + 9);
+                    if (quoteStart != string::npos) {
+                        size_t quoteEnd = newXmlDecl.find_first_of("'\"", quoteStart + 1);
+                        if (quoteEnd != string::npos) {
+                            newXmlDecl.replace(quoteStart + 1, quoteEnd - quoteStart - 1, "UTF-8");
+                            cleanedContent.replace(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2, newXmlDecl);
+                        }
+                    }
+                } else {
+                    // 如果没有编码属性，添加一个
+                    size_t versionEnd = xmlDecl.find("version=");
+                    if (versionEnd != string::npos) {
+                        size_t versionQuoteEnd = xmlDecl.find_first_of("'\"", versionEnd + 8);
+                        if (versionQuoteEnd != string::npos) {
+                            versionQuoteEnd = xmlDecl.find_first_of("'\"", versionQuoteEnd + 1);
+                            if (versionQuoteEnd != string::npos) {
+                                string newXmlDecl = xmlDecl.substr(0, versionQuoteEnd + 1) + 
+                                                    " encoding=\"UTF-8\"" + 
+                                                    xmlDecl.substr(versionQuoteEnd + 1);
+                                cleanedContent.replace(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2, newXmlDecl);
+                            }
+                        }
+                    }
+                }
+            }
         }
         
         // 写入清理后的内容

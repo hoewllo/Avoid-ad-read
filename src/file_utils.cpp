@@ -140,12 +140,23 @@ namespace FileUtils {
             streamsize size = file.tellg();
             file.seekg(0, ios::beg);
             
-            string content;
-            content.resize(static_cast<size_t>(size));
-            
-            if (!file.read(&content[0], size)) {
+            // 读取原始二进制数据
+            vector<char> buffer(static_cast<size_t>(size));
+            if (!file.read(buffer.data(), size)) {
                 cerr << "读取文件失败: " << path << endl;
                 return "";
+            }
+            
+            // 检查UTF-8 BOM (EF BB BF)
+            string content;
+            if (size >= 3 && 
+                static_cast<unsigned char>(buffer[0]) == 0xEF &&
+                static_cast<unsigned char>(buffer[1]) == 0xBB &&
+                static_cast<unsigned char>(buffer[2]) == 0xBF) {
+                // 跳过BOM
+                content.assign(buffer.begin() + 3, buffer.end());
+            } else {
+                content.assign(buffer.begin(), buffer.end());
             }
             
             return content;
@@ -164,6 +175,25 @@ namespace FileUtils {
             if (!file.is_open()) {
                 cerr << "无法创建文件: " << path << endl;
                 return false;
+            }
+            
+            // 检查是否需要添加UTF-8 BOM
+            bool hasNonAscii = false;
+            for (char c : content) {
+                if (static_cast<unsigned char>(c) > 0x7F) {
+                    hasNonAscii = true;
+                    break;
+                }
+            }
+            
+            // 对于包含非ASCII字符的文本文件，添加UTF-8 BOM
+            if (hasNonAscii) {
+                // 检查文件扩展名，只对文本文件添加BOM
+                string ext = getFileExtension(path);
+                if (ext == ".xhtml" || ext == ".html" || ext == ".xml" || 
+                    ext == ".opf" || ext == ".ncx" || ext == ".css") {
+                    file.write("\xEF\xBB\xBF", 3);
+                }
             }
             
             file.write(content.data(), static_cast<streamsize>(content.size()));
@@ -348,16 +378,83 @@ namespace FileUtils {
         }
     }
     
-    // ==================== 编码转换 ====================
+        // ==================== 编码转换 ====================
     
     string toUtf8(const string& str, const string& fromEncoding) {
-        // 简化实现，实际项目中应该使用iconv或ICU库
-        // 这里假设输入已经是UTF-8或ASCII
+        // 简单的编码转换实现
+        // 注意：这是一个简化版本，对于复杂的编码转换需要使用专门的库如iconv
+        
+        if (fromEncoding == "UTF-8" || fromEncoding == "utf-8") {
+            return str;
+        }
+        
+#ifdef _WIN32
+        // Windows平台编码转换
+        if (fromEncoding == "GBK" || fromEncoding == "gbk" || 
+            fromEncoding == "GB2312" || fromEncoding == "gb2312") {
+            
+            int wlen = MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
+            if (wlen <= 0) return str;
+            
+            wstring wstr(wlen, 0);
+            MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, &wstr[0], wlen);
+            
+            int utf8len = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+            if (utf8len <= 0) return str;
+            
+            string utf8str(utf8len, 0);
+            WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &utf8str[0], utf8len, NULL, NULL);
+            
+            // 移除末尾的null字符
+            if (!utf8str.empty() && utf8str.back() == '\0') {
+                utf8str.pop_back();
+            }
+            
+            return utf8str;
+        }
+#endif
+        
+        // 对于其他编码或非Windows平台，返回原始字符串
+        // 在实际项目中应该使用跨平台的编码转换库
+        cerr << "警告: 不支持从编码 " << fromEncoding << " 转换到UTF-8" << endl;
         return str;
     }
     
     string fromUtf8(const string& str, const string& toEncoding) {
-        // 简化实现
+        // 从UTF-8转换到其他编码
+        
+        if (toEncoding == "UTF-8" || toEncoding == "utf-8") {
+            return str;
+        }
+        
+#ifdef _WIN32
+        // Windows平台编码转换
+        if (toEncoding == "GBK" || toEncoding == "gbk" || 
+            toEncoding == "GB2312" || toEncoding == "gb2312") {
+            
+            int wlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+            if (wlen <= 0) return str;
+            
+            wstring wstr(wlen, 0);
+            MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], wlen);
+            
+            int gbklen = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+            if (gbklen <= 0) return str;
+            
+            string gbkstr(gbklen, 0);
+            WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &gbkstr[0], gbklen, NULL, NULL);
+            
+            // 移除末尾的null字符
+            if (!gbkstr.empty() && gbkstr.back() == '\0') {
+                gbkstr.pop_back();
+            }
+            
+            return gbkstr;
+        }
+#endif
+        
+        // 对于其他编码或非Windows平台，返回原始字符串
+        cerr << "警告: 不支持从UTF-8转换到编码 " << toEncoding << endl;
         return str;
     }
     
@@ -413,3 +510,5 @@ namespace FileUtils {
         return fileExists(backupPath);
     }
 }
+
+
