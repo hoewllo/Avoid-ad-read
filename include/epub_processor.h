@@ -10,8 +10,8 @@ namespace fs = std::filesystem;
 
 class EpubProcessor {
 public:
-    // 构造函数
-    EpubProcessor(bool verbose = false, bool createBackup = true);
+        // 构造函数
+    EpubProcessor(bool verbose = false, bool createBackup = true, bool preserveEncoding = false);
     
     // 处理单个EPUB文件
     bool processFile(const fs::path& inputPath, const fs::path& outputPath);
@@ -57,11 +57,12 @@ private:
     // 创建备份
     bool createBackup(const fs::path& filePath);
     
-    // 成员变量
+        // 成员变量
     std::vector<std::regex> adPatterns;
     Stats stats;
     bool verbose;
     bool createBackupFiles;
+    bool preserveEncoding;  // 新增：保持原始编码
     
     // 内置广告模式
     void initializeDefaultPatterns();

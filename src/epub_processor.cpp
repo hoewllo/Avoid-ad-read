@@ -12,8 +12,8 @@
 
 using namespace std;
 
-EpubProcessor::EpubProcessor(bool verbose, bool createBackup) 
-    : verbose(verbose), createBackupFiles(createBackup) {
+EpubProcessor::EpubProcessor(bool verbose, bool createBackup, bool preserveEncoding) 
+    : verbose(verbose), createBackupFiles(createBackup), preserveEncoding(preserveEncoding) {
     initializeDefaultPatterns();
     resetStats();
 }
@@ -356,7 +356,8 @@ bool EpubProcessor::cleanXhtmlFile(const fs::path& filePath) {
                             string encodingUpper = encoding;
                             transform(encodingUpper.begin(), encodingUpper.end(), encodingUpper.begin(), ::toupper);
                             
-                            if (encodingUpper != "UTF-8" && encodingUpper != "UTF8") {
+                            // 如果不保持原始编码，且不是UTF-8，则转换为UTF-8
+                            if (!preserveEncoding && encodingUpper != "UTF-8" && encodingUpper != "UTF8") {
                                 if (verbose) {
                                     cout << "    检测到编码: " << encoding << ", 将转换为UTF-8" << endl;
                                 }
@@ -380,38 +381,40 @@ bool EpubProcessor::cleanXhtmlFile(const fs::path& filePath) {
             return true;
         }
         
-        // 确保XML声明中的编码是UTF-8
-        size_t xmlDeclStart2 = cleanedContent.find("<?xml");
-        if (xmlDeclStart2 != string::npos) {
-            size_t xmlDeclEnd2 = cleanedContent.find("?>", xmlDeclStart2);
-            if (xmlDeclEnd2 != string::npos) {
-                string xmlDecl = cleanedContent.substr(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2);
-                
-                // 检查并更新编码属性
-                size_t encodingPos = xmlDecl.find("encoding=");
-                if (encodingPos != string::npos) {
-                    // 更新为UTF-8
-                    string newXmlDecl = xmlDecl;
-                    size_t quoteStart = newXmlDecl.find_first_of("'\"", encodingPos + 9);
-                    if (quoteStart != string::npos) {
-                        size_t quoteEnd = newXmlDecl.find_first_of("'\"", quoteStart + 1);
-                        if (quoteEnd != string::npos) {
-                            newXmlDecl.replace(quoteStart + 1, quoteEnd - quoteStart - 1, "UTF-8");
-                            cleanedContent.replace(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2, newXmlDecl);
-                        }
-                    }
-                } else {
-                    // 如果没有编码属性，添加一个
-                    size_t versionEnd = xmlDecl.find("version=");
-                    if (versionEnd != string::npos) {
-                        size_t versionQuoteEnd = xmlDecl.find_first_of("'\"", versionEnd + 8);
-                        if (versionQuoteEnd != string::npos) {
-                            versionQuoteEnd = xmlDecl.find_first_of("'\"", versionQuoteEnd + 1);
-                            if (versionQuoteEnd != string::npos) {
-                                string newXmlDecl = xmlDecl.substr(0, versionQuoteEnd + 1) + 
-                                                    " encoding=\"UTF-8\"" + 
-                                                    xmlDecl.substr(versionQuoteEnd + 1);
+        // 如果不保持原始编码，确保XML声明中的编码是UTF-8
+        if (!preserveEncoding) {
+            size_t xmlDeclStart2 = cleanedContent.find("<?xml");
+            if (xmlDeclStart2 != string::npos) {
+                size_t xmlDeclEnd2 = cleanedContent.find("?>", xmlDeclStart2);
+                if (xmlDeclEnd2 != string::npos) {
+                    string xmlDecl = cleanedContent.substr(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2);
+                    
+                    // 检查并更新编码属性
+                    size_t encodingPos = xmlDecl.find("encoding=");
+                    if (encodingPos != string::npos) {
+                        // 更新为UTF-8
+                        string newXmlDecl = xmlDecl;
+                        size_t quoteStart = newXmlDecl.find_first_of("'\"", encodingPos + 9);
+                        if (quoteStart != string::npos) {
+                            size_t quoteEnd = newXmlDecl.find_first_of("'\"", quoteStart + 1);
+                            if (quoteEnd != string::npos) {
+                                newXmlDecl.replace(quoteStart + 1, quoteEnd - quoteStart - 1, "UTF-8");
                                 cleanedContent.replace(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2, newXmlDecl);
+                            }
+                        }
+                    } else {
+                        // 如果没有编码属性，添加一个
+                        size_t versionEnd = xmlDecl.find("version=");
+                        if (versionEnd != string::npos) {
+                            size_t versionQuoteEnd = xmlDecl.find_first_of("'\"", versionEnd + 8);
+                            if (versionQuoteEnd != string::npos) {
+                                versionQuoteEnd = xmlDecl.find_first_of("'\"", versionQuoteEnd + 1);
+                                if (versionQuoteEnd != string::npos) {
+                                    string newXmlDecl = xmlDecl.substr(0, versionQuoteEnd + 1) + 
+                                                        " encoding=\"UTF-8\"" + 
+                                                        xmlDecl.substr(versionQuoteEnd + 1);
+                                    cleanedContent.replace(xmlDeclStart2, xmlDeclEnd2 - xmlDeclStart2 + 2, newXmlDecl);
+                                }
                             }
                         }
                     }

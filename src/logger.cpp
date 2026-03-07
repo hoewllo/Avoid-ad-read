@@ -31,7 +31,7 @@ namespace Logger {
     void LogStream::writeLog() {
         lock_guard<mutex> lock(logMutex);
         
-        ostream* output = (level >= Level::ERROR) ? 
+                ostream* output = (level >= Level::ERR) ? 
                          globalConfig.errorOutput : globalConfig.output;
         
         // 设置颜色（仅对支持ANSI转义的控制台）
@@ -90,24 +90,24 @@ namespace Logger {
         return oss.str();
     }
     
-    string LogStream::getLevelString() const {
+        string LogStream::getLevelString() const {
         switch (level) {
             case Level::DEBUG:   return "DEBUG";
             case Level::INFO:    return "INFO";
             case Level::WARNING: return "WARN";
-            case Level::ERROR:   return "ERROR";
+            case Level::ERR:     return "ERROR";
             case Level::FATAL:   return "FATAL";
             default:             return "UNKNOWN";
         }
     }
     
-    string LogStream::getColorCode() const {
+        string LogStream::getColorCode() const {
         // ANSI颜色代码
         switch (level) {
             case Level::DEBUG:   return "\033[36m";  // 青色
             case Level::INFO:    return "\033[32m";  // 绿色
             case Level::WARNING: return "\033[33m";  // 黄色
-            case Level::ERROR:   return "\033[31m";  // 红色
+            case Level::ERR:     return "\033[31m";  // 红色
             case Level::FATAL:   return "\033[35m";  // 洋红色
             default:             return "";
         }
@@ -115,7 +115,7 @@ namespace Logger {
     
     void LogStream::resetColor() const {
         // 重置ANSI颜色
-        ostream* output = (level >= Level::ERROR) ? 
+                ostream* output = (level >= Level::ERR) ? 
                          globalConfig.errorOutput : globalConfig.output;
         *output << "\033[0m";
     }

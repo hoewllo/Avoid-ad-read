@@ -9,6 +9,10 @@
 #include <cstring>
 #include <algorithm>
 
+#ifdef _WIN32
+    #include <windows.h>
+#endif
+
 using namespace std;
 
 // 命令行参数结构
@@ -24,6 +28,7 @@ struct CommandLineArgs {
     bool version = false;
     bool debug = false;
     bool quiet = false;
+    bool preserveEncoding = false;  // 新增：保持原始编码
 };
 
 // 显示帮助信息
@@ -39,6 +44,8 @@ void showHelp() {
     cout << "\n  \n  广告模式:";
     cout << "\n    -p, --patterns FILE     自定义广告模式文件";
     cout << "\n    --list-patterns        列出所有内置广告模式";
+    cout << "\n  \n  编码处理:";
+    cout << "\n    -e, --preserve-encoding 保持原始文件编码（不转换为UTF-8）";
     cout << "\n  \n  日志和输出:";
     cout << "\n    -v, --verbose           启用详细输出";
     cout << "\n    -q, --quiet             静默模式，只显示错误";
@@ -51,7 +58,8 @@ void showHelp() {
     cout << "\n  epub_cleaner -i book.epub -o clean_book.epub";
     cout << "\n  epub_cleaner -I ./books -O ./cleaned_books -v";
     cout << "\n  epub_cleaner -i book.epub -p my_patterns.txt -d";
-    cout << "\n  epub_cleaner -q -i book.epub -o clean_book.epub" << endl;
+    cout << "\n  epub_cleaner -q -i book.epub -o clean_book.epub";
+    cout << "\n  epub_cleaner -i book.epub -e  # 保持原始编码" << endl;
 }
 
 // 显示版本信息
@@ -125,8 +133,11 @@ CommandLineArgs parseArguments(int argc, char* argv[]) {
         else if (arg == "-h" || arg == "--help") {
             args.showHelp = true;
         }
-        else if (arg == "-V" || arg == "--version") {
+                else if (arg == "-V" || arg == "--version") {
             args.version = true;
+        }
+        else if (arg == "-e" || arg == "--preserve-encoding") {
+            args.preserveEncoding = true;
         }
         else if (arg == "--list-patterns") {
             listBuiltinPatterns();
@@ -215,6 +226,14 @@ string getDefaultOutputDir(const string& inputDir) {
 }
 
 int main(int argc, char* argv[]) {
+    // Windows 控制台编码设置
+#ifdef _WIN32
+    // 设置控制台输出为 UTF-8 编码
+    SetConsoleOutputCP(CP_UTF8);
+    // 设置控制台输入为 UTF-8 编码（可选）
+    SetConsoleCP(CP_UTF8);
+#endif
+    
     // 设置默认日志级别
     Logger::setLevel(Logger::Level::INFO);
     
@@ -234,7 +253,7 @@ int main(int argc, char* argv[]) {
     
     // 设置日志级别
     if (args.quiet) {
-        Logger::setLevel(Logger::Level::ERROR);
+        Logger::setLevel(Logger::Level::ERR);
     } else if (args.debug) {
         Logger::setLevel(Logger::Level::DEBUG);
     } else if (args.verbose) {
@@ -250,8 +269,8 @@ int main(int argc, char* argv[]) {
     try {
         LOG_INFO << "EPUB广告清理工具启动";
         
-        // 创建EPUB处理器
-        EpubProcessor processor(args.verbose, !args.noBackup);
+                // 创建EPUB处理器，传递编码保持选项
+        EpubProcessor processor(args.verbose, !args.noBackup, args.preserveEncoding);
         
         // 加载自定义广告模式（如果指定）
         if (!args.patternFile.empty()) {

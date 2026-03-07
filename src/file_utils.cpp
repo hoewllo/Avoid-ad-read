@@ -1,5 +1,6 @@
 #include "file_utils.h"
 #include "zip_utils.h"
+#include "iconv_wrapper.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -378,84 +379,16 @@ namespace FileUtils {
         }
     }
     
-        // ==================== 编码转换 ====================
+            // ==================== 编码转换 ====================
     
     string toUtf8(const string& str, const string& fromEncoding) {
-        // 简单的编码转换实现
-        // 注意：这是一个简化版本，对于复杂的编码转换需要使用专门的库如iconv
-        
-        if (fromEncoding == "UTF-8" || fromEncoding == "utf-8") {
-            return str;
-        }
-        
-#ifdef _WIN32
-        // Windows平台编码转换
-        if (fromEncoding == "GBK" || fromEncoding == "gbk" || 
-            fromEncoding == "GB2312" || fromEncoding == "gb2312") {
-            
-            int wlen = MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
-            if (wlen <= 0) return str;
-            
-            wstring wstr(wlen, 0);
-            MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, &wstr[0], wlen);
-            
-            int utf8len = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
-            if (utf8len <= 0) return str;
-            
-            string utf8str(utf8len, 0);
-            WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &utf8str[0], utf8len, NULL, NULL);
-            
-            // 移除末尾的null字符
-            if (!utf8str.empty() && utf8str.back() == '\0') {
-                utf8str.pop_back();
-            }
-            
-            return utf8str;
-        }
-#endif
-        
-        // 对于其他编码或非Windows平台，返回原始字符串
-        // 在实际项目中应该使用跨平台的编码转换库
-        cerr << "警告: 不支持从编码 " << fromEncoding << " 转换到UTF-8" << endl;
-        return str;
+        // 使用iconv_wrapper进行编码转换
+        return ::toUtf8(str, fromEncoding);
     }
     
     string fromUtf8(const string& str, const string& toEncoding) {
-        // 从UTF-8转换到其他编码
-        
-        if (toEncoding == "UTF-8" || toEncoding == "utf-8") {
-            return str;
-        }
-        
-#ifdef _WIN32
-        // Windows平台编码转换
-        if (toEncoding == "GBK" || toEncoding == "gbk" || 
-            toEncoding == "GB2312" || toEncoding == "gb2312") {
-            
-            int wlen = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
-            if (wlen <= 0) return str;
-            
-            wstring wstr(wlen, 0);
-            MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], wlen);
-            
-            int gbklen = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
-            if (gbklen <= 0) return str;
-            
-            string gbkstr(gbklen, 0);
-            WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &gbkstr[0], gbklen, NULL, NULL);
-            
-            // 移除末尾的null字符
-            if (!gbkstr.empty() && gbkstr.back() == '\0') {
-                gbkstr.pop_back();
-            }
-            
-            return gbkstr;
-        }
-#endif
-        
-        // 对于其他编码或非Windows平台，返回原始字符串
-        cerr << "警告: 不支持从UTF-8转换到编码 " << toEncoding << endl;
-        return str;
+        // 使用iconv_wrapper进行编码转换
+        return ::fromUtf8(str, toEncoding);
     }
     
     // ==================== 文件比较 ====================

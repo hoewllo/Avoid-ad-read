@@ -13,7 +13,7 @@ namespace Logger {
         DEBUG,
         INFO,
         WARNING,
-        ERROR,
+        ERR,
         FATAL
     };
     
@@ -62,7 +62,7 @@ namespace Logger {
     #define LOG_DEBUG Logger::LogStream(Logger::Level::DEBUG, __FILE__, __LINE__)
     #define LOG_INFO Logger::LogStream(Logger::Level::INFO, __FILE__, __LINE__)
     #define LOG_WARN Logger::LogStream(Logger::Level::WARNING, __FILE__, __LINE__)
-    #define LOG_ERROR Logger::LogStream(Logger::Level::ERROR, __FILE__, __LINE__)
+    #define LOG_ERROR Logger::LogStream(Logger::Level::ERR, __FILE__, __LINE__)
     #define LOG_FATAL Logger::LogStream(Logger::Level::FATAL, __FILE__, __LINE__)
 }
 

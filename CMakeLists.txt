@@ -33,6 +33,15 @@ else()
     message(WARNING "ZLIB not found at specified path")
 endif()
 
+# 检查iconv库
+find_package(Iconv)
+if(Iconv_FOUND)
+    message(STATUS "Found Iconv: ${Iconv_LIBRARIES}")
+    add_definitions(-DHAVE_ICONV)
+else()
+    message(STATUS "Iconv not found, using built-in encoding conversion")
+endif()
+
 # 包含目录
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
@@ -56,6 +65,7 @@ set(SOURCES
     src/file_utils.cpp
     src/zip_utils_impl.cpp  # 新的ZIP实现
     src/logger.cpp
+    src/iconv_wrapper.cpp   # 编码转换包装器
 )
 
 # 如果zlib可用，添加zlib压缩功能
@@ -81,6 +91,11 @@ set(LINK_LIBRARIES)
 # 链接zlib（如果找到）
 if(ZLIB_FOUND)
     list(APPEND LINK_LIBRARIES "${ZLIB_LIBRARY}")
+endif()
+
+# 链接iconv（如果找到）
+if(Iconv_FOUND)
+    list(APPEND LINK_LIBRARIES ${Iconv_LIBRARIES})
 endif()
 
 # Windows特定设置
