@@ -72,15 +72,18 @@ namespace Logger {
     
     string LogStream::getTimestamp() const {
         auto now = chrono::system_clock::now();
-        auto time = chrono::system_clock::to_time_t(now);
+        auto time_t_val = chrono::system_clock::to_time_t(now);
         auto ms = chrono::duration_cast<chrono::milliseconds>(
             now.time_since_epoch()) % 1000;
         
         tm localTime;
-        #ifndef _WIN32
-        localtime_s(&localTime, &time);
+        #ifdef _WIN32
+        localtime_s(&localTime, &time_t_val);
         #elif defined(__unix__)
-        localtime_r(&time, &localTime);
+        localtime_r(&time_t_val, &localTime);
+        #else
+        // 其他平台使用标准函数
+        localtime_r(&time_t_val, &localTime);
         #endif
         
         ostringstream oss;

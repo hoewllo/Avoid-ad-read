@@ -1,0 +1,130 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 15
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Configuration",
+      "description": "Default build configuration",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug Configuration",
+      "description": "Debug build with symbols",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-debug",
+        "BUILD_TESTS": "ON",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release Configuration",
+      "description": "Release build with optimizations",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-release",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      }
+    },
+    {
+      "name": "msvc",
+      "displayName": "MSVC Configuration",
+      "description": "Build with Visual Studio generator",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/msvc",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-msvc",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON"
+      }
+    },
+    {
+      "name": "minimal",
+      "displayName": "Minimal Configuration",
+      "description": "Minimal build without optional dependencies",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/minimal",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-minimal",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "OFF",
+        "ENABLE_ICONV": "OFF",
+        "ENABLE_SYSTEM_ZIP": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "displayName": "Build Default",
+      "description": "Build with default configuration"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Build Debug",
+      "description": "Build debug version"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Build Release",
+      "description": "Build release version"
+    },
+    {
+      "name": "msvc",
+      "configurePreset": "msvc",
+      "displayName": "Build MSVC",
+      "description": "Build with MSVC"
+    },
+    {
+      "name": "minimal",
+      "configurePreset": "minimal",
+      "displayName": "Build Minimal",
+      "description": "Build minimal version"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "debug",
+      "displayName": "Test Default",
+      "description": "Run tests with debug configuration"
+    }
+  ]
+}

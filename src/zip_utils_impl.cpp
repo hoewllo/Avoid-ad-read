@@ -11,7 +11,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
+// shlwapi.lib 链接在 CMakeLists.txt 中处理
 #endif
 
 using namespace std;

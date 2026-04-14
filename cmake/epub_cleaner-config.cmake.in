@@ -1,0 +1,45 @@
+@PACKAGE_INIT@
+
+# 检查依赖
+include(CMakeFindDependencyMacro)
+
+# 查找zlib（如果启用）
+if(@ENABLE_ZLIB@)
+    find_dependency(ZLIB)
+endif()
+
+# 查找iconv（如果启用）
+if(@ENABLE_ICONV@)
+    find_dependency(Iconv)
+endif()
+
+# 包含目标文件
+include("${CMAKE_CURRENT_LIST_DIR}/epub_cleaner-targets.cmake")
+
+# 设置变量
+set(EPUB_CLEANER_VERSION @PROJECT_VERSION@)
+set(EPUB_CLEANER_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
+
+# 检查目标是否可用
+if(NOT TARGET epub_cleaner::lib)
+    message(WARNING "Target epub_cleaner::lib not found in imported targets")
+endif()
+
+# 提供查找包结果变量
+set(EPUB_CLEANER_FOUND TRUE)
+set(EPUB_CLEANER_LIBRARIES epub_cleaner::lib)
+set(EPUB_CLEANER_INCLUDE_DIRS ${EPUB_CLEANER_INCLUDE_DIRS})
+
+# 提供查找包函数（向后兼容）
+function(epub_cleaner_find_package)
+    set(EPUB_CLEANER_FOUND TRUE PARENT_SCOPE)
+    set(EPUB_CLEANER_INCLUDE_DIRS ${EPUB_CLEANER_INCLUDE_DIRS} PARENT_SCOPE)
+    set(EPUB_CLEANER_LIBRARIES epub_cleaner::lib PARENT_SCOPE)
+    set(EPUB_CLEANER_VERSION ${EPUB_CLEANER_VERSION} PARENT_SCOPE)
+endfunction()
+
+# 导出变量到父作用域
+set(EPUB_CLEANER_FOUND ${EPUB_CLEANER_FOUND} PARENT_SCOPE)
+set(EPUB_CLEANER_LIBRARIES ${EPUB_CLEANER_LIBRARIES} PARENT_SCOPE)
+set(EPUB_CLEANER_INCLUDE_DIRS ${EPUB_CLEANER_INCLUDE_DIRS} PARENT_SCOPE)
+set(EPUB_CLEANER_VERSION ${EPUB_CLEANER_VERSION} PARENT_SCOPE)
