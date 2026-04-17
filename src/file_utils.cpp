@@ -297,7 +297,7 @@ namespace FileUtils {
     }
     
     TempDirectory::TempDirectory(TempDirectory&& other) noexcept 
-        : path(move(other.path)) {
+        : path(std::move(other.path)) {
         other.path.clear();
     }
     
@@ -307,7 +307,7 @@ namespace FileUtils {
             if (!path.empty() && directoryExists(path)) {
                 removeDirectory(path);
             }
-            path = move(other.path);
+            path = std::move(other.path);
             other.path.clear();
         }
         return *this;

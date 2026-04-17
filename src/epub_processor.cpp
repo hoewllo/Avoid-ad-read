@@ -354,7 +354,8 @@ bool EpubProcessor::cleanXhtmlFile(const fs::path& filePath) {
                             
                             // 转换为大写以便比较
                             string encodingUpper = encoding;
-                            transform(encodingUpper.begin(), encodingUpper.end(), encodingUpper.begin(), ::toupper);
+                            transform(encodingUpper.begin(), encodingUpper.end(), encodingUpper.begin(), 
+                                     [](unsigned char c) { return static_cast<char>(::toupper(c)); });
                             
                             // 如果不保持原始编码，且不是UTF-8，则转换为UTF-8
                             if (!preserveEncoding && encodingUpper != "UTF-8" && encodingUpper != "UTF8") {

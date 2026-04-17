@@ -5,14 +5,42 @@ A C++ EPUB ad content cleaning tool that supports batch processing, automatic ex
 ## 📦 Quick Start
 
 ### Compile the Program
+
+#### Using Unified Build Script (Recommended)
 ```bash
-# Use the simple compilation script
+# Windows (PowerShell required)
+.\build.bat
+
+# With options
+.\build.bat -Preset debug -Test
+.\build.bat -Clean
+.\build.bat -Help
+
+# Or use the PowerShell script directly
+powershell -ExecutionPolicy Bypass -File tools\scripts\build\build.ps1
+```
+
+#### Using CMake Presets
+```bash
+# Configure with default preset
+cmake --preset default
+
+# Build
+cmake --build --preset default
+
+# Run tests
+ctest --preset default
+```
+
+#### Legacy Build Scripts
+```bash
+# Simple compilation
 tools/build-tool/compile_simple.bat
 
-# Or use the full build script
+# Full build script
 tools/build-tool/build.bat
 
-# Or compile manually
+# Manual compilation
 mkdir bin
 g++ -std=c++17 -Wall -Wextra -Iinclude -I. src/*.cpp -o bin/epub_cleaner.exe -D_WIN32
 ```
@@ -28,6 +56,28 @@ bin\epub_cleaner.exe -I ./books -O ./cleaned_books -v
 # List built-in ad patterns
 bin\epub_cleaner.exe --list-patterns
 ```
+
+## 🏗️ Project Structure
+
+The project follows a clean and organized structure:
+
+```
+epub-ad-cleaner/
+├── CMakeLists.txt          # Main CMake configuration
+├── CMakePresets.json       # CMake preset configurations
+├── config/                 # Project configuration files
+├── docs/                   # Documentation (including PROJECT_STRUCTURE.md)
+├── cmake/                 # CMake modules and toolchains
+├── include/               # Header files
+├── src/                   # Source code
+└── tools/                 # Tools, scripts and tests
+    ├── build-tool/        # Build tools
+    ├── scripts/           # Build and utility scripts (including build.bat)
+    ├── test/             # Test code and scripts
+    └── example_patterns.txt
+```
+
+For detailed structure information, see [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md).
 
 ## 📚 Documentation
 

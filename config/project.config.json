@@ -1,0 +1,44 @@
+{
+  "name": "epub_cleaner",
+  "version": "1.0.0",
+  "description": "EPUB Ad Cleaner - C++ EPUB ad content cleaning tool",
+  "author": "Jianyin Li",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/epub-ad-cleaner"
+  },
+  "build": {
+    "cmake_minimum_version": "3.15",
+    "cxx_standard": 17,
+    "default_preset": "default",
+    "presets": ["default", "debug", "release", "msvc", "minimal"]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": [
+      {
+        "name": "zlib",
+        "purpose": "Compression support",
+        "cmake_option": "ENABLE_ZLIB"
+      },
+      {
+        "name": "iconv",
+        "purpose": "Encoding conversion",
+        "cmake_option": "ENABLE_ICONV"
+      }
+    ]
+  },
+  "features": {
+    "batch_processing": true,
+    "ad_pattern_matching": true,
+    "encoding_conversion": true,
+    "backup_creation": true,
+    "verbose_logging": true
+  },
+  "targets": {
+    "executable": "epub_cleaner",
+    "libraries": [],
+    "tests": "epub_cleaner_tests"
+  }
+}

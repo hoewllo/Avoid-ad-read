@@ -2,6 +2,7 @@
 #include "ad_patterns.h"
 #include "file_utils.h"
 #include "logger.h"
+#include "version.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -33,7 +34,7 @@ struct CommandLineArgs {
 
 // 显示帮助信息
 void showHelp() {
-    cout << "EPUB广告清理工具 v1.0.0" << endl;
+    cout << epub_cleaner::VersionInfo::getVersionString() << endl;
     cout << "用法: epub_cleaner [选项]" << endl << endl;
     cout << "选项:";
     cout << "\n  输入/输出:";
@@ -64,7 +65,7 @@ void showHelp() {
 
 // 显示版本信息
 void showVersion() {
-    cout << "EPUB广告清理工具 v1.0.0" << endl;
+    cout << epub_cleaner::VersionInfo::getFullInfo() << endl;
     cout << "使用C++17和系统ZIP命令" << endl;
     cout << "编译时间: " << __DATE__ << " " << __TIME__ << endl;
 }

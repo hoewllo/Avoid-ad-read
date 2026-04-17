@@ -1,20 +1,42 @@
 cmake_minimum_required(VERSION 3.15)
-project(epub_cleaner
-    VERSION 1.0.0
-    DESCRIPTION "EPUB Ad Cleaner - C++ EPUB ad content cleaning tool"
+
+# 启用现代CMake特性
+include_guard(GLOBAL)
+
+# 从VERSION文件读取版本信息（简单格式：只包含版本号）
+file(STRINGS VERSION VERSION_CONTENT)
+if(VERSION_CONTENT)
+    # 去除可能的空格和换行符
+    string(STRIP "${VERSION_CONTENT}" PROJECT_VERSION)
+    
+    # 解析版本组件
+    string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ ${PROJECT_VERSION})
+    set(PROJECT_VERSION_MAJOR ${CMAKE_MATCH_1})
+    set(PROJECT_VERSION_MINOR ${CMAKE_MATCH_2})
+    set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_3})
+else()
+    # 默认版本
+    set(PROJECT_VERSION "1.0.0")
+    set(PROJECT_VERSION_MAJOR 1)
+    set(PROJECT_VERSION_MINOR 0)
+    set(PROJECT_VERSION_PATCH 0)
+endif()
+
+# 项目信息
+set(PROJECT_NAME "epub_cleaner")
+set(PROJECT_DESCRIPTION "EPUB Ad Cleaner - C++ EPUB ad content cleaning tool")
+set(PROJECT_COPYRIGHT "Copyright © 2024 Jianyin Li. All rights reserved.")
+
+# 设置项目
+project(${PROJECT_NAME}
+    VERSION ${PROJECT_VERSION}
+    DESCRIPTION ${PROJECT_DESCRIPTION}
     HOMEPAGE_URL "https://github.com/yourusername/epub-ad-cleaner"
     LANGUAGES CXX
 )
 
 # 设置项目元数据
 set(PROJECT_COMPANY "Li")
-set(PROJECT_COPYRIGHT "Copyright © 2024 Jianyin Li. All rights reserved.")
-
-# 提取版本组件
-string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ ${PROJECT_VERSION})
-set(PROJECT_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(PROJECT_VERSION_MINOR ${CMAKE_MATCH_2})
-set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_3})
 
 # 设置SOVERSION（用于共享库）
 set(PROJECT_SOVERSION ${PROJECT_VERSION_MAJOR})
@@ -192,7 +214,6 @@ endif()
 # 包含目录
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}
 )
 
 # 创建库目标（如果未来需要）
@@ -284,7 +305,9 @@ install(DIRECTORY include/
 )
 
 # 安装配置文件
-install(FILES example_patterns.txt
+install(FILES 
+    tools/example_patterns.txt
+    config/project.config.json
     DESTINATION ${CMAKE_INSTALL_DATADIR}/epub_cleaner
 )
 
@@ -305,8 +328,8 @@ install(FILES
 if(BUILD_TESTS)
     enable_testing()
     
-    # 查找测试文件
-    file(GLOB TEST_SOURCES "test/*.cpp")
+    # 查找测试文件 - 现在在tools/test/目录下
+    file(GLOB TEST_SOURCES "tools/test/*.cpp")
     
     if(TEST_SOURCES)
         add_executable(test_epub_cleaner ${TEST_SOURCES})
@@ -324,7 +347,7 @@ if(BUILD_TESTS)
             LABELS "unit"
         )
     else()
-        message(WARNING "No test sources found in test/ directory")
+        message(WARNING "No test sources found in tools/test/ directory")
     endif()
 endif()
 
@@ -385,5 +408,118 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_BINARY_DIR}/cmake_uninstall.cmake
     COMMENT "Uninstalling epub_cleaner"
+)
+
+# CPack配置 - 打包支持
+include(InstallRequiredSystemLibraries)
+
+# 设置CPack变量
+set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+set(CPACK_PACKAGE_VENDOR "Jianyin Li")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PACKAGE_CONTACT "Jianyin Li <jianyin.li@example.com>")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
+
+# 设置打包文件名称
+set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+
+# Windows特定配置
+if(WIN32)
+    # Windows安装程序配置
+    set(CPACK_GENERATOR "ZIP;NSIS")
+    
+    # NSIS安装程序配置
+    set(CPACK_NSIS_DISPLAY_NAME "EPUB Ad Cleaner")
+    set(CPACK_NSIS_PACKAGE_NAME "EPUB Ad Cleaner")
+    set(CPACK_NSIS_HELP_LINK "https://github.com/yourusername/epub-ad-cleaner")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/yourusername/epub-ad-cleaner")
+    set(CPACK_NSIS_CONTACT "Jianyin Li <jianyin.li@example.com>")
+    set(CPACK_NSIS_MODIFY_PATH ON)
+    
+    # 收集运行时库 - 使用更简单的方法
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP FALSE)
+    include(InstallRequiredSystemLibraries)
+    
+    # 对于MSVC，收集VC++运行时
+    if(MSVC)
+        # 启用运行时库收集
+        set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+        if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
+            set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
+        endif()
+        
+        # 安装运行时库
+        if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+            install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                COMPONENT Libraries
+            )
+        endif()
+    endif()
+    
+    # 对于MinGW，收集必要的DLL（简化版本）
+    if(MINGW)
+        # 简化方法：在打包后处理阶段收集DLL
+        # 实际DLL收集可以在CICD中通过windeployqt或类似工具完成
+        message(STATUS "MinGW build: Runtime DLLs should be collected during packaging")
+    endif()
+    
+elseif(APPLE)
+    # macOS配置
+    set(CPACK_GENERATOR "ZIP;DragNDrop")
+    set(CPACK_DMG_VOLUME_NAME "EPUB Ad Cleaner")
+    set(CPACK_DMG_FORMAT "UDBZ")
+    
+else()
+    # Linux配置
+    set(CPACK_GENERATOR "TGZ;DEB")
+    
+    # DEB包配置
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Jianyin Li <jianyin.li@example.com>")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libzip4, zlib1g")
+    
+endif()
+
+# 组件配置
+set(CPACK_COMPONENTS_ALL Applications Libraries Headers Documentation)
+
+# 应用程序组件
+set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "EPUB Ad Cleaner Application")
+set(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION "The main EPUB ad cleaning executable")
+set(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
+set(CPACK_COMPONENT_APPLICATIONS_REQUIRED TRUE)
+
+# 库组件
+set(CPACK_COMPONENT_LIBRARIES_DISPLAY_NAME "Runtime Libraries")
+set(CPACK_COMPONENT_LIBRARIES_DESCRIPTION "Required runtime libraries (DLLs/so/dylib)")
+set(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
+set(CPACK_COMPONENT_LIBRARIES_REQUIRED TRUE)
+
+# 头文件组件
+set(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C++ Headers")
+set(CPACK_COMPONENT_HEADERS_DESCRIPTION "C++ header files for development")
+set(CPACK_COMPONENT_HEADERS_GROUP "Development")
+set(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
+
+# 文档组件
+set(CPACK_COMPONENT_DOCUMENTATION_DISPLAY_NAME "Documentation")
+set(CPACK_COMPONENT_DOCUMENTATION_DESCRIPTION "User and developer documentation")
+set(CPACK_COMPONENT_DOCUMENTATION_GROUP "Documentation")
+
+# 包含CPack模块
+include(CPack)
+
+# 创建打包目标（使用不同的名称，因为CPack已经定义了"package"目标）
+add_custom_target(make_package
+    COMMAND ${CMAKE_CPACK_COMMAND}
+    COMMENT "Creating package with CPack"
+    DEPENDS epub_cleaner
 )
 

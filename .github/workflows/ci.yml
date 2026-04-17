@@ -1,0 +1,593 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  BUILD_TYPE: Release
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-windows-msvc:
+    name: Build Windows (MSVC)
+    runs-on: windows-latest
+    continue-on-error: true  # 构建失败不取消其他作业
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Configure CMake
+      run: |
+        cmake --preset msvc
+
+    - name: Build
+      run: |
+        cmake --build --preset msvc --config Release
+
+    - name: Collect runtime libraries
+      run: |
+        # 收集运行时库到打包目录
+        mkdir -p build/msvc/runtime
+        # 复制可执行文件
+        if (Test-Path "build/msvc/bin/*.exe") {
+          Copy-Item "build/msvc/bin/*.exe" "build/msvc/runtime/"
+        }
+        # 复制DLL文件
+        if (Test-Path "build/msvc/bin/*.dll") {
+          Copy-Item "build/msvc/bin/*.dll" "build/msvc/runtime/"
+        }
+        if (Test-Path "build/msvc/lib/*.dll") {
+          Copy-Item "build/msvc/lib/*.dll" "build/msvc/runtime/"
+        }
+        # 对于MSVC，VC++运行时应该已经通过InstallRequiredSystemLibraries处理
+
+    - name: Create package with CPack
+      run: |
+        cd build/msvc
+        cpack -G ZIP -C Release
+        cpack -G NSIS -C Release || echo "NSIS package creation failed, continuing with ZIP only"
+        
+        # 检查是否生成了ZIP文件
+        $zipFile = Get-ChildItem "*.zip" | Select-Object -First 1
+        if ($zipFile) {
+          # 解压ZIP文件
+          $tempDir = New-Item -ItemType Directory -Path "temp_extract" -Force
+          Expand-Archive -Path $zipFile.FullName -DestinationPath $tempDir.FullName -Force
+          
+          # 复制运行时DLL到解压目录
+          if (Test-Path "runtime/*.dll") {
+            Copy-Item "runtime/*.dll" -Destination "$($tempDir.FullName)/bin/" -Force
+          }
+          
+          # 重新创建ZIP文件
+          Remove-Item $zipFile.FullName -Force
+          Compress-Archive -Path "$($tempDir.FullName)/*" -DestinationPath $zipFile.FullName -CompressionLevel Optimal
+          
+          # 清理临时目录
+          Remove-Item $tempDir.FullName -Recurse -Force
+        }
+
+    - name: Upload artifacts
+      if: success() || failure()  # 即使失败也上传已构建的产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-msvc-packages
+        path: |
+          build/msvc/*.zip
+          build/msvc/*.exe
+          build/msvc/bin/*.exe
+          build/msvc/lib/*.lib
+          build/msvc/lib/*.dll
+
+  build-windows-mingw:
+    name: Build Windows (MinGW)
+    runs-on: windows-latest
+    continue-on-error: true  # 构建失败不取消其他作业
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install MinGW
+      run: |
+        # 检查是否已安装MinGW
+        if (!(Get-Command gcc -ErrorAction SilentlyContinue)) {
+          # 安装64位MinGW
+          choco install mingw --params="/InstallDir:C:\mingw64 /Architecture:x86_64" -y
+          # 添加MinGW到PATH
+          $env:Path = "C:\mingw64\bin;" + $env:Path
+          [Environment]::SetEnvironmentVariable("Path", $env:Path, [EnvironmentVariableTarget]::Process)
+        } else {
+          Write-Host "MinGW is already installed"
+        }
+
+    - name: Configure CMake
+      run: |
+        cmake --preset default
+
+    - name: Build
+      run: |
+        cmake --build --preset default
+
+    - name: Collect MinGW runtime libraries
+      run: |
+        # 收集MinGW运行时DLL
+        mkdir -p build/default/runtime
+        # 复制可执行文件
+        if (Test-Path "build/default/bin/*.exe") {
+          Copy-Item "build/default/bin/*.exe" "build/default/runtime/"
+        }
+        # 复制DLL文件
+        if (Test-Path "build/default/bin/*.dll") {
+          Copy-Item "build/default/bin/*.dll" "build/default/runtime/"
+        }
+        if (Test-Path "build/default/lib/*.dll") {
+          Copy-Item "build/default/lib/*.dll" "build/default/runtime/"
+        }
+        
+        # 尝试查找并复制MinGW运行时DLL
+        $mingwPath = (Get-Command gcc).Source | Split-Path -Parent
+        $dlls = @("libstdc++-6.dll", "libgcc_s_seh-1.dll", "libwinpthread-1.dll")
+        foreach ($dll in $dlls) {
+            $dllPath = Join-Path $mingwPath $dll
+            if (Test-Path $dllPath) {
+                Copy-Item $dllPath -Destination "build/default/runtime/"
+                Write-Host "Copied $dll"
+            }
+        }
+
+    - name: Create package with CPack
+      run: |
+        cd build/default
+        cpack -G ZIP -C Release
+        
+        # 检查是否生成了ZIP文件
+        $zipFile = Get-ChildItem "*.zip" | Select-Object -First 1
+        if ($zipFile) {
+          # 解压ZIP文件
+          $tempDir = New-Item -ItemType Directory -Path "temp_extract" -Force
+          Expand-Archive -Path $zipFile.FullName -DestinationPath $tempDir.FullName -Force
+          
+          # 复制运行时DLL到解压目录
+          if (Test-Path "runtime/*.dll") {
+            Copy-Item "runtime/*.dll" -Destination "$($tempDir.FullName)/bin/" -Force
+          }
+          
+          # 重新创建ZIP文件
+          Remove-Item $zipFile.FullName -Force
+          Compress-Archive -Path "$($tempDir.FullName)/*" -DestinationPath $zipFile.FullName -CompressionLevel Optimal
+          
+          # 清理临时目录
+          Remove-Item $tempDir.FullName -Recurse -Force
+        }
+
+    - name: Upload artifacts
+      if: success() || failure()  # 即使失败也上传已构建的产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-mingw-packages
+        path: |
+          build/default/*.zip
+          build/default/bin/*.exe
+          build/default/lib/*.a
+          build/default/lib/*.dll
+
+  build-linux-gcc:
+    name: Build Linux (GCC)
+    runs-on: ubuntu-latest
+    continue-on-error: true  # 构建失败不取消其他作业
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libzip-dev \
+          zlib1g-dev
+
+    - name: Configure CMake
+      run: |
+        cmake -B build/linux -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DBUILD_TESTS=OFF
+
+    - name: Build
+      run: |
+        cmake --build build/linux --config ${{ env.BUILD_TYPE }}
+
+    - name: Create package with CPack
+      run: |
+        cd build/linux
+        cpack -G TGZ -C ${{ env.BUILD_TYPE }}
+        cpack -G DEB -C ${{ env.BUILD_TYPE }} || echo "DEB package creation failed, continuing with TGZ only"
+
+    - name: Upload artifacts
+      if: success() || failure()  # 即使失败也上传已构建的产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-packages
+        path: |
+          build/linux/*.tar.gz
+          build/linux/*.deb
+          build/linux/bin/*
+          build/linux/lib/*
+
+  build-macos-clang:
+    name: Build macOS (Clang)
+    runs-on: macos-latest
+    continue-on-error: true  # 构建失败不取消其他作业
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        brew install cmake libzip
+
+    - name: Configure CMake
+      run: |
+        cmake -B build/macos -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DBUILD_TESTS=OFF
+
+    - name: Build
+      run: |
+        cmake --build build/macos --config ${{ env.BUILD_TYPE }}
+
+    - name: Create package with CPack
+      run: |
+        cd build/macos
+        cpack -G ZIP -C ${{ env.BUILD_TYPE }}
+        cpack -G DragNDrop -C ${{ env.BUILD_TYPE }} || echo "DragNDrop package creation failed, continuing with ZIP only"
+
+    - name: Upload artifacts
+      if: success() || failure()  # 即使失败也上传已构建的产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-packages
+        path: |
+          build/macos/*.zip
+          build/macos/*.dmg
+          build/macos/bin/*
+          build/macos/lib/*
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang-tidy \
+          cppcheck \
+          valgrind
+
+    - name: Run clang-tidy
+      run: |
+        find src -name "*.cpp" -exec clang-tidy {} \
+          --checks='-*,modernize-*,readability-*,performance-*,portability-*' \
+          --warnings-as-errors='*' \
+          -- -std=c++17 -Iinclude 2>&1 | tee clang-tidy-report.txt || true
+
+    - name: Run cppcheck
+      run: |
+        cppcheck \
+          --enable=all \
+          --suppress=missingIncludeSystem \
+          --std=c++17 \
+          --error-exitcode=1 \
+          src/ include/ 2>&1 | tee cppcheck-report.txt || true
+
+    - name: Run valgrind (if tests exist)
+      run: |
+        # 如果有测试可执行文件，运行内存检查
+        if [ -f "build/linux/bin/epub_cleaner" ]; then
+          valgrind --leak-check=full --show-leak-kinds=all \
+            --track-origins=yes --error-exitcode=1 \
+            ./build/linux/bin/epub_cleaner --help 2>&1 | tee valgrind-report.txt || true
+        else
+          echo "No executable found for valgrind check"
+        fi
+
+    - name: Upload code quality reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-quality-reports
+        path: |
+          clang-tidy-report.txt
+          cppcheck-report.txt
+          valgrind-report.txt
+
+  create-release:
+    name: Create Release
+    needs: [build-windows-msvc, build-windows-mingw, build-linux-gcc, build-macos-clang, code-quality]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      continue-on-error: true  # 即使某些产物下载失败也继续
+
+    - name: Create release package
+      run: |
+        mkdir -p release
+        
+        # 1. 为每个平台创建完整包（包含库文件和主程序）
+        echo "创建平台完整包..."
+        
+        # Windows MSVC完整包 - 使用实际的artifact目录名
+        if [ -d "windows-msvc-packages" ]; then
+          mkdir -p release/windows-msvc-full
+          # 复制所有文件
+          find windows-msvc-packages -type f -name "*" -exec cp {} release/windows-msvc-full/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/windows-msvc-full && tar -czf ../epub-cleaner-windows-msvc-full.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/windows-msvc-full
+        fi
+        
+        # Windows MinGW完整包 - 使用实际的artifact目录名
+        if [ -d "windows-mingw-packages" ]; then
+          mkdir -p release/windows-mingw-full
+          # 复制所有文件
+          find windows-mingw-packages -type f -name "*" -exec cp {} release/windows-mingw-full/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/windows-mingw-full && tar -czf ../epub-cleaner-windows-mingw-full.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/windows-mingw-full
+        fi
+        
+        # Linux完整包 - 使用实际的artifact目录名
+        if [ -d "linux-packages" ]; then
+          mkdir -p release/linux-full
+          # 复制所有文件
+          find linux-packages -type f -name "*" -exec cp {} release/linux-full/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/linux-full && tar -czf ../epub-cleaner-linux-full.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/linux-full
+        fi
+        
+        # macOS完整包 - 使用实际的artifact目录名
+        if [ -d "macos-packages" ]; then
+          mkdir -p release/macos-full
+          # 复制所有文件
+          find macos-packages -type f -name "*" -exec cp {} release/macos-full/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/macos-full && tar -czf ../epub-cleaner-macos-full.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/macos-full
+        fi
+        
+        # 2. 为每个平台创建主程序单独包
+        echo "创建主程序单独包..."
+        
+        # Windows MSVC主程序包 - 使用实际的artifact目录名
+        if [ -d "windows-msvc-packages" ]; then
+          mkdir -p release/windows-msvc-app
+          # 只复制可执行文件
+          find windows-msvc-packages -name "*.exe" -type f -exec cp {} release/windows-msvc-app/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/windows-msvc-app && tar -czf ../epub-cleaner-windows-msvc-app.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/windows-msvc-app
+        fi
+        
+        # Windows MinGW主程序包 - 使用实际的artifact目录名
+        if [ -d "windows-mingw-packages" ]; then
+          mkdir -p release/windows-mingw-app
+          # 只复制可执行文件
+          find windows-mingw-packages -name "*.exe" -type f -exec cp {} release/windows-mingw-app/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/windows-mingw-app && tar -czf ../epub-cleaner-windows-mingw-app.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/windows-mingw-app
+        fi
+        
+        # Linux主程序包 - 使用实际的artifact目录名
+        if [ -d "linux-packages" ]; then
+          mkdir -p release/linux-app
+          # 只复制可执行文件（无扩展名）
+          find linux-packages -type f -executable ! -name "*.so" ! -name "*.a" ! -name "*.o" -exec cp {} release/linux-app/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/linux-app && tar -czf ../epub-cleaner-linux-app.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/linux-app
+        fi
+        
+        # macOS主程序包 - 使用实际的artifact目录名
+        if [ -d "macos-packages" ]; then
+          mkdir -p release/macos-app
+          # 只复制可执行文件（无扩展名）
+          find macos-packages -type f -executable ! -name "*.dylib" ! -name "*.a" ! -name "*.o" -exec cp {} release/macos-app/ \; 2>/dev/null || true
+          # 创建压缩包
+          cd release/macos-app && tar -czf ../epub-cleaner-macos-app.tar.gz . && cd ../..
+          # 清理临时目录
+          rm -rf release/macos-app
+        fi
+        
+        # 3. 创建README文件
+        echo "创建README文件..."
+        cat > release/README.md << 'EOF'
+        # EPUB Ad Cleaner - Release Packages
+        
+        This release contains pre-built packages for different platforms.
+        
+        ## Available Packages:
+        
+        EOF
+        
+        # 动态添加可用的包
+        if [ -f "release/epub-cleaner-windows-msvc-full.tar.gz" ]; then
+          echo "- **Windows MSVC Full Package** (`epub-cleaner-windows-msvc-full.tar.gz`): Contains executable + all libraries" >> release/README.md
+        fi
+        if [ -f "release/epub-cleaner-windows-msvc-app.tar.gz" ]; then
+          echo "- **Windows MSVC App Only** (`epub-cleaner-windows-msvc-app.tar.gz`): Contains only the executable" >> release/README.md
+        fi
+        
+        if [ -f "release/epub-cleaner-windows-mingw-full.tar.gz" ]; then
+          echo "- **Windows MinGW Full Package** (`epub-cleaner-windows-mingw-full.tar.gz`): Contains executable + all libraries" >> release/README.md
+        fi
+        if [ -f "release/epub-cleaner-windows-mingw-app.tar.gz" ]; then
+          echo "- **Windows MinGW App Only** (`epub-cleaner-windows-mingw-app.tar.gz`): Contains only the executable" >> release/README.md
+        fi
+        
+        if [ -f "release/epub-cleaner-linux-full.tar.gz" ]; then
+          echo "- **Linux Full Package** (`epub-cleaner-linux-full.tar.gz`): Contains executable + all libraries" >> release/README.md
+        fi
+        if [ -f "release/epub-cleaner-linux-app.tar.gz" ]; then
+          echo "- **Linux App Only** (`epub-cleaner-linux-app.tar.gz`): Contains only the executable" >> release/README.md
+        fi
+        
+        if [ -f "release/epub-cleaner-macos-full.tar.gz" ]; then
+          echo "- **macOS Full Package** (`epub-cleaner-macos-full.tar.gz`): Contains executable + all libraries" >> release/README.md
+        fi
+        if [ -f "release/epub-cleaner-macos-app.tar.gz" ]; then
+          echo "- **macOS App Only** (`epub-cleaner-macos-app.tar.gz`): Contains only the executable" >> release/README.md
+        fi
+        
+        cat >> release/README.md << 'EOF'
+        
+        ## Package Types
+        
+        ### Full Packages
+        Contains:
+        - Main executable (epub_cleaner)
+        - Static libraries (.a/.lib) for linking
+        - Shared libraries (.so/.dylib/.dll) for runtime
+        - All dependencies
+        
+        ### App Only Packages
+        Contains:
+        - Only the main executable
+        - For users who already have the required libraries installed
+        
+        ## Usage
+        
+        1. Download the appropriate package for your platform
+        2. Extract the archive:
+           ```bash
+           tar -xzf epub-cleaner-<platform>-<type>.tar.gz
+           ```
+        3. Run the executable:
+           - Windows: `epub_cleaner.exe`
+           - Linux/macOS: `./epub_cleaner`
+        
+        ## Example
+        
+        ```bash
+        # Clean ads from an EPUB file
+        epub_cleaner input.epub output.epub
+        ```
+        
+        ## Notes
+        
+        - Full packages are larger but include everything needed
+        - App only packages are smaller but require system libraries
+        - For development/integration, use full packages
+        - For end users, app only packages may be sufficient
+        
+        ## License
+        
+        See the main LICENSE file for details.
+        EOF
+
+    - name: Get version info
+      id: version_info
+      run: |
+        # 从VERSION文件提取版本号（简单格式：只包含版本号）
+        if [ -f "VERSION" ]; then
+          # 读取第一行作为版本号
+          VERSION=$(head -n 1 VERSION | tr -d '[:space:]')
+        fi
+        
+        # 如果提取失败，使用默认值
+        if [ -z "$VERSION" ]; then
+          VERSION="1.0.0"
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # 生成标签名（使用运行号，避免权限问题）
+        TAG_NAME="build-$GITHUB_RUN_NUMBER"
+        echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+        
+        # 生成发布名称
+        RELEASE_NAME="EPUB Ad Cleaner v$VERSION (Build $GITHUB_RUN_NUMBER)"
+        echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      if: success()
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version_info.outputs.tag_name }}
+        name: ${{ steps.version_info.outputs.release_name }}
+        body: |
+          # EPUB Ad Cleaner Release
+          
+          **Version:** ${{ steps.version_info.outputs.version }}
+          **Build:** ${{ github.run_number }}
+          **Commit:** ${{ github.sha }}
+          
+          ## Package Types
+          
+          This release contains two types of packages for each platform:
+          
+          1. **Full Packages** - Contains executable + all libraries (for development/integration)
+          2. **App Only Packages** - Contains only the executable (for end users)
+          
+          ## Available Packages
+          
+          | Platform | Full Package | App Only Package |
+          |----------|--------------|------------------|
+          | Windows MSVC | epub-cleaner-windows-msvc-full.tar.gz | epub-cleaner-windows-msvc-app.tar.gz |
+          | Windows MinGW | epub-cleaner-windows-mingw-full.tar.gz | epub-cleaner-windows-mingw-app.tar.gz |
+          | Linux | epub-cleaner-linux-full.tar.gz | epub-cleaner-linux-app.tar.gz |
+          | macOS | epub-cleaner-macos-full.tar.gz | epub-cleaner-macos-app.tar.gz |
+          
+          ## Usage
+          
+          1. Download the appropriate package for your platform
+          2. Extract: `tar -xzf epub-cleaner-<platform>-<type>.tar.gz`
+          3. Run: `./epub_cleaner` (Linux/macOS) or `epub_cleaner.exe` (Windows)
+          
+          Example:
+          ```bash
+          epub_cleaner input.epub output.epub
+          ```
+          
+          See the included README.md for more details.
+        files: |
+          release/epub-cleaner-windows-msvc-full.tar.gz
+          release/epub-cleaner-windows-msvc-app.tar.gz
+          release/epub-cleaner-windows-mingw-full.tar.gz
+          release/epub-cleaner-windows-mingw-app.tar.gz
+          release/epub-cleaner-linux-full.tar.gz
+          release/epub-cleaner-linux-app.tar.gz
+          release/epub-cleaner-macos-full.tar.gz
+          release/epub-cleaner-macos-app.tar.gz
+          release/README.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

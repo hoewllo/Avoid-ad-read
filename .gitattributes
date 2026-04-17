@@ -1,0 +1,22 @@
+# Git attributes for EPUB Ad Cleaner project
+
+# Specify file types
+VERSION -text
+VERSION linguist-language=text
+
+# C++ files
+*.cpp linguist-language=C++
+*.h linguist-language=C++
+*.hpp linguist-language=C++
+
+# CMake files
+CMakeLists.txt linguist-language=CMake
+*.cmake linguist-language=CMake
+
+# Script files
+*.bat linguist-language=Batchfile
+*.sh linguist-language=Shell
+
+# Documentation
+*.md linguist-language=Markdown
+*.txt linguist-language=Text

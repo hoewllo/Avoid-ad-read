@@ -8,8 +8,8 @@
     {
       "name": "default",
       "displayName": "Default Configuration",
-      "description": "Default build configuration",
-      "generator": "Ninja",
+      "description": "Default build configuration with MinGW",
+      "generator": "MinGW Makefiles",
       "binaryDir": "${sourceDir}/build/default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -19,13 +19,17 @@
         "ENABLE_ZLIB": "ON",
         "ENABLE_ICONV": "ON",
         "ENABLE_SYSTEM_ZIP": "ON"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
       }
     },
     {
       "name": "debug",
       "displayName": "Debug Configuration",
       "description": "Debug build with symbols",
-      "generator": "Ninja",
+      "generator": "MinGW Makefiles",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
@@ -35,13 +39,17 @@
         "ENABLE_ZLIB": "ON",
         "ENABLE_ICONV": "ON",
         "ENABLE_SYSTEM_ZIP": "ON"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
       }
     },
     {
       "name": "release",
       "displayName": "Release Configuration",
       "description": "Release build with optimizations",
-      "generator": "Ninja",
+      "generator": "MinGW Makefiles",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -52,6 +60,10 @@
         "ENABLE_ICONV": "ON",
         "ENABLE_SYSTEM_ZIP": "ON",
         "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
       }
     },
     {
@@ -67,14 +79,15 @@
         "BUILD_DOCS": "OFF",
         "ENABLE_ZLIB": "ON",
         "ENABLE_ICONV": "ON",
-        "ENABLE_SYSTEM_ZIP": "ON"
+        "ENABLE_SYSTEM_ZIP": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Release;Debug"
       }
     },
     {
       "name": "minimal",
       "displayName": "Minimal Configuration",
       "description": "Minimal build without optional dependencies",
-      "generator": "Ninja",
+      "generator": "MinGW Makefiles",
       "binaryDir": "${sourceDir}/build/minimal",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -84,6 +97,50 @@
         "ENABLE_ZLIB": "OFF",
         "ENABLE_ICONV": "OFF",
         "ENABLE_SYSTEM_ZIP": "OFF"
+      },
+      "environment": {
+        "CC": "gcc",
+        "CXX": "g++"
+      }
+    },
+    {
+      "name": "mingw64",
+      "displayName": "MinGW-w64 Configuration",
+      "description": "Build with MinGW-w64 (64-bit)",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build/mingw64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-mingw64",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON"
+      },
+      "environment": {
+        "CC": "x86_64-w64-mingw32-gcc",
+        "CXX": "x86_64-w64-mingw32-g++"
+      }
+    },
+    {
+      "name": "mingw32",
+      "displayName": "MinGW-w32 Configuration",
+      "description": "Build with MinGW-w64 (32-bit)",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build/mingw32",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-mingw32",
+        "BUILD_TESTS": "OFF",
+        "BUILD_DOCS": "OFF",
+        "ENABLE_ZLIB": "ON",
+        "ENABLE_ICONV": "ON",
+        "ENABLE_SYSTEM_ZIP": "ON"
+      },
+      "environment": {
+        "CC": "i686-w64-mingw32-gcc",
+        "CXX": "i686-w64-mingw32-g++"
       }
     }
   ],
@@ -117,6 +174,18 @@
       "configurePreset": "minimal",
       "displayName": "Build Minimal",
       "description": "Build minimal version"
+    },
+    {
+      "name": "mingw64",
+      "configurePreset": "mingw64",
+      "displayName": "Build MinGW64",
+      "description": "Build with MinGW-w64 (64-bit)"
+    },
+    {
+      "name": "mingw32",
+      "configurePreset": "mingw32",
+      "displayName": "Build MinGW32",
+      "description": "Build with MinGW-w64 (32-bit)"
     }
   ],
   "testPresets": [

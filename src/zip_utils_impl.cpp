@@ -193,6 +193,7 @@ namespace ZipUtils {
             try {
                 fs::rename(tempZipPath, zipPath);
             } catch (const fs::filesystem_error& e) {
+                (void)e; // 避免未使用变量警告
                 // 如果重命名失败，尝试复制
                 ifstream src(tempZipPath, ios::binary);
                 ofstream dst(zipPath, ios::binary);
