@@ -2,7 +2,7 @@
 #include "ad_patterns.h"
 #include "file_utils.h"
 #include "logger.h"
-#include "version.h"
+#include "epub_cleaner/version.h"
 #include <iostream>
 #include <string>
 #include <vector>

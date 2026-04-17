@@ -214,6 +214,7 @@ endif()
 # 包含目录
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}/include  # 用于生成的版本头文件
 )
 
 # 创建库目标（如果未来需要）
@@ -311,6 +312,13 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_DATADIR}/epub_cleaner
 )
 
+# 生成版本头文件
+configure_file(
+    ${CMAKE_SOURCE_DIR}/include/version.h.in
+    ${CMAKE_BINARY_DIR}/include/epub_cleaner/version.h
+    @ONLY
+)
+
 # 生成配置文件
 configure_file(
     ${CMAKE_SOURCE_DIR}/cmake/epub_cleaner-config.cmake.in
@@ -322,6 +330,12 @@ configure_file(
 install(FILES
     ${CMAKE_BINARY_DIR}/epub_cleaner-config.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/epub_cleaner
+)
+
+# 安装生成的版本头文件
+install(FILES
+    ${CMAKE_BINARY_DIR}/include/epub_cleaner/version.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/epub_cleaner
 )
 
 # 测试支持
