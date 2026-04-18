@@ -52,6 +52,10 @@ jobs:
     - name: Create package with CPack
       run: |
         cd build/msvc
+        # 设置错误处理：遇到错误立即停止
+        $ErrorActionPreference = "Stop"
+        # 打印当前目录用于调试
+        Write-Host "Current directory: $(Get-Location)"
         cpack -G ZIP -C Release
         cpack -G NSIS -C Release || echo "NSIS package creation failed, continuing with ZIP only"
         
@@ -76,9 +80,11 @@ jobs:
             Write-Host "Found executable in: $exeDir"
             
             # 复制运行时DLL到可执行文件所在目录
-            if (Test-Path "runtime/*.dll") {
-              Copy-Item "runtime/*.dll" -Destination $exeDir -Force
+            if (Test-Path "./runtime/*.dll") {
+              Copy-Item "./runtime/*.dll" -Destination $exeDir -Force
               Write-Host "Copied runtime DLLs to: $exeDir"
+            } else {
+              Write-Host "No runtime DLLs found at ./runtime/*.dll"
             }
           } else {
             Write-Host "No executable found in extracted archive"
@@ -168,6 +174,10 @@ jobs:
     - name: Create package with CPack
       run: |
         cd build/default
+        # 设置错误处理：遇到错误立即停止
+        $ErrorActionPreference = "Stop"
+        # 打印当前目录用于调试
+        Write-Host "Current directory: $(Get-Location)"
         cpack -G ZIP -C Release
         
         # 检查是否生成了ZIP文件
@@ -191,9 +201,11 @@ jobs:
             Write-Host "Found executable in: $exeDir"
             
             # 复制运行时DLL到可执行文件所在目录
-            if (Test-Path "runtime/*.dll") {
-              Copy-Item "runtime/*.dll" -Destination $exeDir -Force
+            if (Test-Path "./runtime/*.dll") {
+              Copy-Item "./runtime/*.dll" -Destination $exeDir -Force
               Write-Host "Copied runtime DLLs to: $exeDir"
+            } else {
+              Write-Host "No runtime DLLs found at ./runtime/*.dll"
             }
           } else {
             Write-Host "No executable found in extracted archive"
