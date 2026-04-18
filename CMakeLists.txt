@@ -48,6 +48,7 @@ option(BUILD_DOCS "Build documentation" OFF)
 option(ENABLE_ZLIB "Enable ZLIB compression support" ON)
 option(ENABLE_ICONV "Enable Iconv encoding conversion support" ON)
 option(ENABLE_SYSTEM_ZIP "Use system ZIP utilities instead of built-in" ON)
+option(ENABLE_NSIS "Enable NSIS installer generation (Windows only)" OFF)
 
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
@@ -445,15 +446,21 @@ set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${CMAKE_SYSTEM_N
 # Windows特定配置
 if(WIN32)
     # Windows安装程序配置
-    set(CPACK_GENERATOR "ZIP;NSIS")
-    
-    # NSIS安装程序配置
-    set(CPACK_NSIS_DISPLAY_NAME "EPUB Ad Cleaner")
-    set(CPACK_NSIS_PACKAGE_NAME "EPUB Ad Cleaner")
-    set(CPACK_NSIS_HELP_LINK "https://github.com/yourusername/epub-ad-cleaner")
-    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/yourusername/epub-ad-cleaner")
-    set(CPACK_NSIS_CONTACT "Jianyin Li <jianyin.li@example.com>")
-    set(CPACK_NSIS_MODIFY_PATH ON)
+    if(ENABLE_NSIS)
+        set(CPACK_GENERATOR "ZIP;NSIS")
+        
+        # NSIS安装程序配置
+        set(CPACK_NSIS_DISPLAY_NAME "EPUB Ad Cleaner")
+        set(CPACK_NSIS_PACKAGE_NAME "EPUB Ad Cleaner")
+        set(CPACK_NSIS_HELP_LINK "https://github.com/yourusername/epub-ad-cleaner")
+        set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/yourusername/epub-ad-cleaner")
+        set(CPACK_NSIS_CONTACT "Jianyin Li <jianyin.li@example.com>")
+        set(CPACK_NSIS_MODIFY_PATH ON)
+    else()
+        # 只生成ZIP包
+        set(CPACK_GENERATOR "ZIP")
+        message(STATUS "NSIS installer generation disabled")
+    endif()
     
     # 收集运行时库 - 使用更简单的方法
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP FALSE)

@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # 允许手动触发
+    inputs:
+      enable_nsis:
+        description: 'Enable NSIS installer generation (Windows only)'
+        type: boolean
+        default: false
+        required: false
 
 env:
   BUILD_TYPE: Release
@@ -26,7 +32,15 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake --preset msvc
+        # 根据输入参数决定是否启用NSIS
+        $enableNsis = "${{ github.event.inputs.enable_nsis }}"
+        if ($enableNsis -eq "true") {
+            Write-Host "NSIS enabled via manual trigger"
+            cmake --preset msvc -DENABLE_NSIS=ON
+        } else {
+            Write-Host "NSIS disabled (default for CI)"
+            cmake --preset msvc -DENABLE_NSIS=OFF
+        }
 
     - name: Build
       run: |
@@ -41,16 +55,34 @@ jobs:
     - name: Create package with CPack
       run: |
         cd build/msvc
-        # 设置错误处理：遇到错误立即停止
-        $ErrorActionPreference = "Stop"
         # 打印当前目录用于调试
         Write-Host "Current directory: $(Get-Location)"
         
-        # 生成ZIP包（主要产物）
-        cpack -G ZIP -C Release
+        # 设置错误处理：遇到错误立即停止
+        $ErrorActionPreference = "Stop"
         
-        # 尝试生成NSIS安装包（可选，失败不影响主要构建）
-        cpack -G NSIS -C Release || Write-Host "NSIS package creation failed, continuing with ZIP only"
+        # 根据NSIS设置决定生成哪些包
+        $enableNsis = "${{ github.event.inputs.enable_nsis }}"
+        
+        if ($enableNsis -eq "true") {
+            # 安装NSIS（如果需要）
+            Write-Host "Installing NSIS for manual trigger..."
+            choco install nsis -y
+            
+            # 生成ZIP和NSIS包
+            Write-Host "Creating ZIP and NSIS packages..."
+            cpack -G ZIP -C Release
+            Write-Host "ZIP package created successfully"
+            
+            Write-Host "Creating NSIS installer..."
+            cpack -G NSIS -C Release
+            Write-Host "NSIS installer created successfully"
+        } else {
+            # 只生成ZIP包
+            Write-Host "Creating ZIP package (NSIS disabled)..."
+            cpack -G ZIP -C Release
+            Write-Host "ZIP package created successfully"
+        }
         
         # 列出生成的包文件
         Write-Host "Generated package files:"
